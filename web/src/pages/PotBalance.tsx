@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, HandCoins, ChevronRight, PartyPopper, Scale } from 'lucide-react'
+import { ArrowRight, HandCoins, PartyPopper, Scale } from 'lucide-react'
 import { api, type Balances, type Expense, type Group } from '../lib/api'
-import { money } from '../lib/money'
-import Avatar from '../components/Avatar'
+import { plain } from '../lib/money'
+import { packCircles } from '../lib/pack'
 import Transfers from '../components/Transfers'
 import { Loading, PageHead } from '../components/Layout'
 
@@ -24,6 +24,11 @@ export default function PotBalance() {
   const spent = (pid: number) => expenses.reduce((sum, e) => sum + (e.splits.find((s) => s.participant_id === pid)?.amount_cents ?? 0), 0)
   const net = (pid: number) => bal.balances.find((b) => b.participant_id === pid)?.amount_cents ?? 0
 
+  const maxAbs = Math.max(0, ...people.map((p) => Math.abs(net(p.id))))
+  // Circle area follows the amount (radius ~ sqrt), between 0.4 and 1 so small balances stay readable.
+  const radius = (pid: number) => 0.4 + 0.6 * (maxAbs ? Math.sqrt(Math.abs(net(pid)) / maxAbs) : 0)
+  const cloud = packCircles(people.map((p) => radius(p.id)), 0.04)
+
   return (
     <>
       <PageHead title="Balance" back={`/pots/${id}`}>
@@ -32,24 +37,34 @@ export default function PotBalance() {
       <div className="cols even">
         <section className="card">
           <h2><Scale size={14} /> Per person</h2>
-          <ul className="list">
-            {people.map((p) => {
-              const n = net(p.id)
-              return (
-                <li key={p.id}>
-                  <Link to={`/pots/${id}/people/${p.id}`} className="person">
-                    <Avatar person={p} size={34} />
-                    <span className="grow">
-                      <b className="ellipsis" style={{ display: 'block' }}>{p.name}</b>
-                      <small>Spent {money(spent(p.id), group.currency)}</small>
+          <div className="cloudwrap">
+            <div className="cloud" style={{ aspectRatio: `${cloud.width} / ${cloud.height}`, maxWidth: cloud.width * 115, minWidth: cloud.width * 90 }}>
+              {people.map((p, i) => {
+                const n = net(p.id)
+                const c = cloud.circles[i]
+                return (
+                  <Link
+                    key={p.id}
+                    to={`/pots/${id}/people/${p.id}`}
+                    className={`bubble ${n > 0 ? 'owed' : n < 0 ? 'owes' : 'even'}`}
+                    style={{
+                      left: `${((c.x - c.r) / cloud.width) * 100}%`,
+                      top: `${((c.y - c.r) / cloud.height) * 100}%`,
+                      width: `${((2 * c.r) / cloud.width) * 100}%`,
+                    }}
+                    title={`${p.name}: ${n > 0 ? 'is owed' : n < 0 ? 'owes' : 'settled'}`}
+                  >
+                    <span className="bin">
+                      {p.avatar_url && <img className="bav" src={p.avatar_url} alt="" referrerPolicy="no-referrer" />}
+                      <b className="bname">{p.name}</b>
+                      <b className="bbal">{n > 0 ? '+' : ''}{plain(n)}</b>
+                      <small>Spent {plain(spent(p.id))}</small>
                     </span>
-                    <b className={`amount ${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}`}>{n > 0 ? '+' : ''}{money(n, group.currency)}</b>
-                    <ChevronRight size={16} className="muted" />
                   </Link>
-                </li>
-              )
-            })}
-          </ul>
+                )
+              })}
+            </div>
+          </div>
         </section>
 
         <section className="card">

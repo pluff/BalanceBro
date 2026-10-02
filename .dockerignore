@@ -1,0 +1,14 @@
+.git
+**/.env*
+!**/.env.example
+**/node_modules
+web/dist
+web/ios
+web/android
+api/.bundle
+api/config/master.key
+api/config/credentials/*.key
+api/log/*
+api/tmp/*
+api/storage/*
+api/.github

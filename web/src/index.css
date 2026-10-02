@@ -241,3 +241,24 @@ button.danger { color: var(--neg); }
 a.rowlink { color: inherit; }
 a.rowlink:hover { color: var(--gold-strong); text-decoration: underline; }
 .ledger td.num, .ledger td.num b { font-size: .7rem; }
+
+/* balance cloud: circles packed together, area ~ amount; green = is owed, red = owes */
+.cloudwrap { overflow-x: auto; padding: 4px 0; }
+.cloud { position: relative; width: 100%; margin: 0 auto; }
+.bubble {
+  --c: var(--muted);
+  position: absolute; aspect-ratio: 1; border-radius: 50%; container-type: inline-size;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  color: var(--text); border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 20%, var(--surface));
+  transition: transform .15s;
+}
+.bubble:hover { transform: scale(1.04); z-index: 1; }
+.bubble.owed { --c: var(--pos); }
+.bubble.owes { --c: var(--neg); }
+.bubble.even { background: var(--surface-2); border-color: var(--line); }
+.bin { display: flex; flex-direction: column; align-items: center; gap: 1cqw; width: 100%; padding: 0 5cqw; }
+.bubble .bav { width: 22cqw; height: 22cqw; border-radius: 50%; object-fit: cover; margin-bottom: 1cqw; }
+.bubble .bname { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13cqw; }
+.bubble small { font-size: 9.5cqw; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bubble .bbal { font-size: 15cqw; font-variant-numeric: tabular-nums; color: var(--c); }
+.bubble.even .bbal { color: var(--muted); }
