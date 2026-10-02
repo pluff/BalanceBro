@@ -25,8 +25,9 @@ export default function PotBalance() {
   const net = (pid: number) => bal.balances.find((b) => b.participant_id === pid)?.amount_cents ?? 0
 
   const maxAbs = Math.max(0, ...people.map((p) => Math.abs(net(p.id))))
-  // Circle area follows the amount (radius ~ sqrt), between 0.4 and 1 so small balances stay readable.
-  const radius = (pid: number) => 0.4 + 0.6 * (maxAbs ? Math.sqrt(Math.abs(net(pid)) / maxAbs) : 0)
+  // Radius grows with the amount (~ ratio^0.35), between 0.5 and 1 so small balances stay readable
+  // and the biggest circle doesn't dwarf the rest.
+  const radius = (pid: number) => 0.5 + 0.5 * (maxAbs ? Math.pow(Math.abs(net(pid)) / maxAbs, 0.35) : 0)
   const cloud = packCircles(people.map((p) => radius(p.id)), 0.04)
 
   return (
