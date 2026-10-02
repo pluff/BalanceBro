@@ -1,0 +1,248 @@
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CURRENCIES } from '../lib/money'
+import Avatar from '../components/Avatar'
+import { api, ApiError, type Group, type Participant, type ParticipantGroup } from '../lib/api'
+
+const errMessage = (e: unknown, inUse = 'Could not save') => {
+  if (e instanceof ApiError && e.status === 422) {
+    const body = e.body as { details?: { name?: string[] } | string[] } | null
+    if (body && !Array.isArray(body.details) && body.details?.name) return 'This name is already in the MoneyPot'
+    return inUse
+  }
+  return 'Something went wrong'
+}
+
+export default function PotSettings() {
+  const { id } = useParams()
+  const qc = useQueryClient()
+  const [newName, setNewName] = useState('')
+  const [editing, setEditing] = useState<{ id: number; name: string } | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [error, setError] = useState('')
+  // `id: null` = creating a new group of people.
+  const [draft, setDraft] = useState<{ id: number | null; name: string; ids: number[] } | null>(null)
+  const [confirmGroupId, setConfirmGroupId] = useState<number | null>(null)
+
+  const { data: group } = useQuery({ queryKey: ['group', id], queryFn: () => api<Group>(`/groups/${id}`) })
+
+  const [potName, setPotName] = useState<string | null>(null) // null = not editing
+  const [copied, setCopied] = useState(false)
+
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ['group', id] })
+    qc.invalidateQueries({ queryKey: ['balances', id] })
+    qc.invalidateQueries({ queryKey: ['expenses', id] }) // group edits change every split that uses the group
+  }
+  const refreshPot = () => {
+    qc.invalidateQueries({ queryKey: ['group', id] })
+    qc.invalidateQueries({ queryKey: ['groups'] })
+  }
+  const updatePot = useMutation({
+    mutationFn: (changes: { name?: string; currency?: string }) => api(`/groups/${id}`, { method: 'PATCH', json: changes }),
+    onSuccess: () => { setPotName(null); setError(''); refreshPot() },
+    onError: () => setError('Could not save'),
+  })
+  const enableShare = useMutation({
+    mutationFn: () => api(`/groups/${id}/share`, { method: 'POST' }),
+    onSuccess: refreshPot,
+    onError: () => setError('Could not create the link'),
+  })
+  const disableShare = useMutation({
+    mutationFn: () => api(`/groups/${id}/share`, { method: 'DELETE' }),
+    onSuccess: refreshPot,
+    onError: () => setError('Could not revoke the link'),
+  })
+  const fail = (inUse?: string) => (e: unknown) => setError(errMessage(e, inUse))
+  const base = `/groups/${id}/participants`
+
+  const add = useMutation({
+    mutationFn: () => api(base, { method: 'POST', json: { name: newName } }),
+    onSuccess: () => { setNewName(''); setError(''); refresh() },
+    onError: fail(),
+  })
+  const rename = useMutation({
+    mutationFn: (p: { id: number; name: string }) => api(`${base}/${p.id}`, { method: 'PATCH', json: { name: p.name } }),
+    onSuccess: () => { setEditing(null); setError(''); refresh() },
+    onError: fail(),
+  })
+  const remove = useMutation({
+    mutationFn: (pid: number) => api(`${base}/${pid}`, { method: 'DELETE' }),
+    onSuccess: () => { setConfirmId(null); setError(''); refresh() },
+    onError: (e) => { setConfirmId(null); fail('Used in expenses or settlements, so it can’t be deleted')(e) },
+  })
+  const reorder = useMutation({
+    mutationFn: (ids: number[]) => api(`${base}/order`, { method: 'PUT', json: { ids } }),
+    onSuccess: refresh,
+    onError: fail(),
+  })
+
+  const saveGroup = useMutation({
+    mutationFn: (d: { id: number | null; name: string; ids: number[] }) =>
+      api(d.id === null ? `/groups/${id}/participant_groups` : `/groups/${id}/participant_groups/${d.id}`, {
+        method: d.id === null ? 'POST' : 'PATCH',
+        json: { name: d.name, participant_ids: d.ids },
+      }),
+    onSuccess: () => { setDraft(null); setError(''); refresh() },
+    onError: fail(),
+  })
+  const removeGroup = useMutation({
+    mutationFn: (gid: number) => api(`/groups/${id}/participant_groups/${gid}`, { method: 'DELETE' }),
+    onSuccess: () => { setConfirmGroupId(null); setError(''); refresh() },
+    onError: (e) => { setConfirmGroupId(null); fail('Used in expenses, so it can’t be deleted')(e) },
+  })
+
+  if (!group) return <p>Loading…</p>
+  const people = group.participants ?? []
+
+  const move = (index: number, delta: -1 | 1) => {
+    const ids = people.map((p) => p.id)
+    const j = index + delta
+    ;[ids[index], ids[j]] = [ids[j], ids[index]]
+    reorder.mutate(ids)
+  }
+
+  const groups: ParticipantGroup[] = group.participant_groups ?? []
+  const toggleMember = (pid: number) =>
+    setDraft((d) => d && { ...d, ids: d.ids.includes(pid) ? d.ids.filter((x) => x !== pid) : [...d.ids, pid] })
+
+  const isOwner = (p: Participant) => p.user_id === group.owner_id
+  const canManage = group.is_owner // members can read, add expenses and create groups; the rest is the owner's
+  const shareUrl = group.share_token ? `${import.meta.env.VITE_APP_URL || window.location.origin}/#/join/${group.share_token}` : ''
+  const copyLink = () =>
+    navigator.clipboard.writeText(shareUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) }).catch(() => {})
+
+  return (
+    <div className="stack">
+      <Link to={`/pots/${id}`}>← {group.name}</Link>
+      <h1>Settings</h1>
+      {error && <p className="error">{error}</p>}
+
+      {canManage && (
+        <>
+          <h2>MoneyPot</h2>
+          {potName === null ? (
+            <p className="row">
+              <span className="grow">{group.name}</span>
+              <button type="button" className="link" onClick={() => setPotName(group.name)}>Rename</button>
+            </p>
+          ) : (
+            <form className="row" onSubmit={(e) => { e.preventDefault(); updatePot.mutate({ name: potName }) }}>
+              <input autoFocus value={potName} onChange={(e) => setPotName(e.target.value)} required />
+              <button type="submit" disabled={updatePot.isPending}>Save</button>
+              <button type="button" className="link" onClick={() => setPotName(null)}>Cancel</button>
+            </form>
+          )}
+
+          <label className="row">
+            Currency
+            <select value={group.currency} disabled={updatePot.isPending} onChange={(e) => updatePot.mutate({ currency: e.target.value })}>
+              {(CURRENCIES.includes(group.currency) ? CURRENCIES : [group.currency, ...CURRENCIES]).map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </label>
+          <p><small>Changing the currency only relabels existing amounts, it does not convert them.</small></p>
+
+          <h2>Sharing</h2>
+          <p><small>Anyone with the link can view this MoneyPot, add expenses and create groups of people. Only you can rename or delete things.</small></p>
+          {shareUrl ? (
+            <>
+              <input readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
+              <span className="row">
+                <button type="button" onClick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
+                <button type="button" className="link" onClick={() => disableShare.mutate()}>Stop sharing</button>
+              </span>
+            </>
+          ) : (
+            <button type="button" onClick={() => enableShare.mutate()} disabled={enableShare.isPending}>Create share link</button>
+          )}
+        </>
+      )}
+
+      <h2>People</h2>
+      <ul className="stack">
+        {people.map((p, i) => (
+          <li key={p.id} className="row">
+            <span className="row">
+              {canManage && (
+                <>
+                  <button type="button" aria-label="Move up" disabled={i === 0 || reorder.isPending} onClick={() => move(i, -1)}>↑</button>
+                  <button type="button" aria-label="Move down" disabled={i === people.length - 1 || reorder.isPending} onClick={() => move(i, 1)}>↓</button>
+                </>
+              )}
+            </span>
+
+            {editing?.id === p.id ? (
+              <form className="row grow" onSubmit={(e) => { e.preventDefault(); rename.mutate(editing) }}>
+                <input autoFocus value={editing.name} onChange={(e) => setEditing({ id: p.id, name: e.target.value })} required />
+                <button type="submit">Save</button>
+                <button type="button" className="link" onClick={() => setEditing(null)}>Cancel</button>
+              </form>
+            ) : (
+              <>
+                <Avatar person={p} />
+                <span className="grow">{p.name}{isOwner(p) && ' (owner)'}</span>
+                {canManage && <button type="button" className="link" onClick={() => { setEditing({ id: p.id, name: p.name }); setConfirmId(null) }}>Rename</button>}
+                {canManage && !isOwner(p) &&
+                  (confirmId === p.id ? (
+                    <button type="button" onClick={() => remove.mutate(p.id)}>Really delete?</button>
+                  ) : (
+                    <button type="button" className="link" onClick={() => setConfirmId(p.id)}>Delete</button>
+                  ))}
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {canManage && (
+        <form className="row" onSubmit={(e) => { e.preventDefault(); add.mutate() }}>
+          <input placeholder="Add person by name" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+          <button type="submit">Add</button>
+        </form>
+      )}
+
+      <h2>Groups of people</h2>
+      <p><small>Shortcuts for the “Split equally between” list when adding an expense.</small></p>
+      {groups.length === 0 && !draft && <p>No groups yet.</p>}
+      <ul className="stack">
+        {groups.map((g) => (
+          <li key={g.id} className="row">
+            <span className="grow">
+              {g.name}
+              <br />
+              <small>{g.participant_ids.map((x) => people.find((p) => p.id === x)?.name).filter(Boolean).join(', ')}</small>
+            </span>
+            {canManage && (
+              <>
+                <button type="button" className="link" onClick={() => { setDraft({ id: g.id, name: g.name, ids: g.participant_ids }); setConfirmGroupId(null) }}>Edit</button>
+                {confirmGroupId === g.id ? (
+                  <button type="button" onClick={() => removeGroup.mutate(g.id)}>Really delete?</button>
+                ) : (
+                  <button type="button" className="link" onClick={() => setConfirmGroupId(g.id)}>Delete</button>
+                )}
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {draft ? (
+        <form className="stack" onSubmit={(e) => { e.preventDefault(); saveGroup.mutate(draft) }}>
+          <input autoFocus placeholder="Group name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
+          {people.map((p) => (
+            <label key={p.id}>
+              <input type="checkbox" checked={draft.ids.includes(p.id)} onChange={() => toggleMember(p.id)} /> {p.name}
+            </label>
+          ))}
+          <span className="row">
+            <button type="submit" disabled={draft.ids.length === 0 || saveGroup.isPending}>Save group</button>
+            <button type="button" className="link" onClick={() => setDraft(null)}>Cancel</button>
+          </span>
+        </form>
+      ) : (
+        <button type="button" onClick={() => setDraft({ id: null, name: '', ids: [] })}>+ New group</button>
+      )}
+    </div>
+  )
+}

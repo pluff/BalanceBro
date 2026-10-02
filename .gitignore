@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env*
+!.env.example
+web/ios/
+web/android/
+api/log/*
+api/tmp/*
+api/storage/*
+api/config/*.key
