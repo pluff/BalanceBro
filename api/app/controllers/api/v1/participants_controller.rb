@@ -4,18 +4,18 @@ module Api
       before_action :set_group
       before_action :require_owner! # members can't touch people; they only add expenses and groups
 
-      FIELDS = %i[id name user_id].freeze
+      FIELDS = %i[id name short_name user_id].freeze
 
-      # POST /groups/:group_id/participants { name } - people don't need an account.
+      # POST /groups/:group_id/participants { name, short_name? } - people don't need an account.
       def create
-        p = @group.participants.create!(name: params[:name].to_s)
+        p = @group.participants.create!(name: params[:name].to_s, short_name: params[:short_name].to_s)
         audit("participant.create", p, { name: p.name })
         render json: p.as_json(only: FIELDS), status: :created
       end
 
       def update
         p = @group.participants.find(params[:id])
-        p.update!(name: params[:name].to_s)
+        p.update!(params.permit(:name, :short_name))
         audit("participant.rename", p, { name: p.saved_change_to_name }) if p.saved_change_to_name?
         render json: p.as_json(only: FIELDS)
       end

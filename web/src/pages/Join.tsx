@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useMatch, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, setToken, type Group, type User } from '../lib/api'
+import { LogIn, UserPlus } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { renderGoogleButton } from '../lib/gsi'
 
@@ -92,36 +93,40 @@ export default function Join() {
 
   if (isError)
     return (
-      <div className="stack">
-        <p className="error">This link is invalid or was revoked</p>
-        {authed && <Link to="/">← MoneyPots</Link>}
+      <div className="login">
+        <div className="card stack">
+          <p className="error">This link is invalid or was revoked</p>
+          {authed && <Link to="/">← MoneyPots</Link>}
+        </div>
       </div>
     )
-  if (!invite || invite.member) return <p>Loading…</p>
+  if (!invite || invite.member) return <p className="empty">Loading…</p>
 
   return (
-    <form className="stack" onSubmit={submit}>
-      <h1>{invite.name}</h1>
-      <p>You were invited to this MoneyPot. Who are you?</p>
-      {invite.participants.map((p) => (
-        <label key={p.id}>
-          <input type="radio" name="who" checked={pick === String(p.id)} onChange={() => setPick(String(p.id))} /> {p.name}
+    <div className="login">
+      <form className="card stack" style={{ textAlign: 'left' }} onSubmit={submit}>
+        <h1>{invite.name}</h1>
+        <p className="muted">You were invited to this MoneyPot. Who are you?</p>
+        {invite.participants.map((p) => (
+          <label key={p.id} className="check">
+            <input type="radio" name="who" checked={pick === String(p.id)} onChange={() => setPick(String(p.id))} /> {p.name}
+          </label>
+        ))}
+        <label className="check">
+          <input type="radio" name="who" checked={pick === NEW} onChange={() => setPick(NEW)} /> <UserPlus size={16} /> I’m someone new
         </label>
-      ))}
-      <label>
-        <input type="radio" name="who" checked={pick === NEW} onChange={() => setPick(NEW)} /> I’m someone new
-      </label>
-      {pick === NEW && (
-        <input placeholder="Your name" value={name} maxLength={50} onChange={(e) => setName(e.target.value)} required autoFocus />
-      )}
-      {error && <p className="error">{error}</p>}
-      {!authed && (
-        <>
-          <div ref={googleBtn} />
-          <small>or just</small>
-        </>
-      )}
-      <button type="submit" disabled={busy || !pick}>{authed ? 'Join' : 'Join as guest'}</button>
-    </form>
+        {pick === NEW && (
+          <input placeholder="Your name" value={name} maxLength={20} onChange={(e) => setName(e.target.value)} required autoFocus />
+        )}
+        {error && <p className="error">{error}</p>}
+        {!authed && (
+          <>
+            <div ref={googleBtn} style={{ display: 'flex', justifyContent: 'center' }} />
+            <small style={{ textAlign: 'center' }}>or just</small>
+          </>
+        )}
+        <button type="submit" className="primary" disabled={busy || !pick}><LogIn size={18} /> {authed ? 'Join' : 'Join as guest'}</button>
+      </form>
+    </div>
   )
 }

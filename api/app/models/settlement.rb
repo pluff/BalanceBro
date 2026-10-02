@@ -3,6 +3,8 @@ class Settlement < ApplicationRecord
   belongs_to :from_participant, class_name: "Participant", inverse_of: :sent_settlements
   belongs_to :to_participant, class_name: "Participant", inverse_of: :received_settlements
 
+  normalizes :description, with: ->(d) { d.to_s.strip.presence }
+  validates :description, length: { maximum: 255 }
   validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }
   validate :different_people
   validate :people_belong_to_group

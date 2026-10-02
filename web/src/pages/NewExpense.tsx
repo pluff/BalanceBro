@@ -1,40 +1,56 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Calendar, Check, CircleUser, Tag, Trash2, Users, Wallet } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, type Group, type User } from '../lib/api'
+import { api, type Expense, type Group, type User } from '../lib/api'
 import { parseCents } from '../lib/money'
+import { Loading, PageHead } from '../components/Layout'
 
 export default function NewExpense() {
-  const { id } = useParams()
+  const { id, eid } = useParams()
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => api<User>('/me') })
   const { data: group } = useQuery({ queryKey: ['group', id], queryFn: () => api<Group>(`/groups/${id}`) })
-  if (!group || !me) return <p>Loading…</p>
-  return <Form group={group} meId={me.id} />
+  // Editing: /pots/:id/expenses/:eid/edit
+  const { data: expenses } = useQuery({ queryKey: ['expenses', id], queryFn: () => api<Expense[]>(`/groups/${id}/expenses`), enabled: !!eid })
+  if (!group || !me || (eid && !expenses)) return <Loading />
+  const expense = eid ? expenses!.find((e) => e.id === Number(eid)) : undefined
+  if (eid && !expense) return <p className="empty">Not found.</p>
+  return <Form group={group} meId={me.id} expense={expense} />
 }
 
-function Form({ group, meId }: { group: Group; meId: number }) {
+function Form({ group, meId, expense }: { group: Group; meId: number; expense?: Expense }) {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const people = group.participants ?? []
   const shortcuts = group.participant_groups ?? []
   const owner = people.find((p) => p.user_id === meId) ?? people[0]
 
-  const [description, setDescription] = useState('')
-  const [amount, setAmount] = useState('')
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const [paidBy, setPaidBy] = useState(owner.id)
-  const [splitWith, setSplitWith] = useState<number[]>([]) // individually picked people
-  const [splitGroups, setSplitGroups] = useState<number[]>([]) // picked groups: stored by reference, not expanded
+  const [description, setDescription] = useState(expense?.description ?? '')
+  const [amount, setAmount] = useState(expense ? (expense.amount_cents / 100).toFixed(2) : '')
+  const [date, setDate] = useState(() => expense?.spent_on ?? new Date().toISOString().slice(0, 10))
+  const [paidBy, setPaidBy] = useState(expense?.paid_by_id ?? owner.id)
+  const [splitWith, setSplitWith] = useState<number[]>(expense?.participant_ids ?? []) // individually picked people
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [splitGroups, setSplitGroups] = useState<number[]>(expense?.participant_group_ids ?? []) // picked groups: stored by reference, not expanded
   const [error, setError] = useState('')
 
+  const done = () => {
+    qc.invalidateQueries({ queryKey: ['expenses', String(group.id)] })
+    qc.invalidateQueries({ queryKey: ['balances', String(group.id)] })
+    navigate(`/pots/${group.id}`)
+  }
   const add = useMutation({
-    mutationFn: (body: unknown) => api(`/groups/${group.id}/expenses`, { method: 'POST', json: body }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['expenses', String(group.id)] })
-      qc.invalidateQueries({ queryKey: ['balances', String(group.id)] })
-      navigate(`/pots/${group.id}`)
-    },
+    mutationFn: (body: unknown) =>
+      expense
+        ? api(`/groups/${group.id}/expenses/${expense.id}`, { method: 'PATCH', json: body })
+        : api(`/groups/${group.id}/expenses`, { method: 'POST', json: body }),
+    onSuccess: done,
     onError: () => setError('Could not save'),
+  })
+  const remove = useMutation({
+    mutationFn: () => api(`/groups/${group.id}/expenses/${expense!.id}`, { method: 'DELETE' }),
+    onSuccess: done,
+    onError: () => setError('Could not delete'),
   })
 
   const toggle = (pid: number) =>
@@ -64,49 +80,61 @@ function Form({ group, meId }: { group: Group; meId: number }) {
 
   return (
     <form onSubmit={submit} className="stack">
-      <Link to={`/pots/${group.id}`}>← {group.name}</Link>
-      <h1>Add expense</h1>
-      <input placeholder="What for?" value={description} onChange={(e) => setDescription(e.target.value)} required autoFocus />
-      <input
-        inputMode="decimal"
-        placeholder={`Amount (${group.currency})`}
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        required
-      />
-      <label className="row">
-        Date
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-      </label>
-      <label className="row">
-        Paid by
-        <select value={paidBy} onChange={(e) => setPaidBy(Number(e.target.value))}>
-          {people.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </label>
-      <fieldset className="stack">
-        <legend>Split equally between</legend>
-        {shortcuts.map((g) => (
-          <label key={`g${g.id}`}>
-            <input type="checkbox" checked={splitGroups.includes(g.id)} onChange={() => toggleGroup(g.id)} /> <b>{g.name}</b>
+      <PageHead title={expense ? 'Edit expense' : 'Add expense'} back={`/pots/${group.id}`} />
+      <div className="cols even">
+        <div className="card stack">
+          <label className="field">
+            <span className="row start"><Tag size={14} /> What for?</span>
+            <input value={description} onChange={(e) => setDescription(e.target.value)} required autoFocus />
           </label>
-        ))}
-        {people.map((p) => (
-          <label key={p.id}>
-            <input
-              type="checkbox"
-              checked={viaGroup.has(p.id) || splitWith.includes(p.id)}
-              disabled={viaGroup.has(p.id)}
-              onChange={() => toggle(p.id)}
-            />{' '}
-            {p.name}
+          <label className="field">
+            <span className="row start"><Wallet size={14} /> Amount ({group.currency})</span>
+            <input inputMode="decimal" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} required />
           </label>
-        ))}
-      </fieldset>
+          <div className="row" style={{ alignItems: 'flex-end' }}>
+            <label className="field grow">
+              <span className="row start"><Calendar size={14} /> Date</span>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            </label>
+            <label className="field grow">
+              <span className="row start"><CircleUser size={14} /> Paid by</span>
+              <select value={paidBy} onChange={(e) => setPaidBy(Number(e.target.value))}>
+                {people.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+        <section className="card" style={{ minWidth: 0 }}>
+          <h2><Users size={14} /> Split equally between</h2>
+          <div className="checks">
+            {shortcuts.map((g) => (
+              <label key={`g${g.id}`} className="check">
+                <input type="checkbox" checked={splitGroups.includes(g.id)} onChange={() => toggleGroup(g.id)} /> <b>{g.name}</b>
+              </label>
+            ))}
+            {people.map((p) => (
+              <label key={p.id} className="check">
+                <input
+                  type="checkbox"
+                  checked={viaGroup.has(p.id) || splitWith.includes(p.id)}
+                  disabled={viaGroup.has(p.id)}
+                  onChange={() => toggle(p.id)}
+                />
+                {p.name}
+              </label>
+            ))}
+          </div>
+        </section>
+      </div>
       {error && <p className="error">{error}</p>}
-      <button type="submit" disabled={add.isPending}>Add</button>
+      <div className="row">
+        <button type="submit" className="primary grow" disabled={add.isPending}><Check size={18} /> {expense ? 'Save' : 'Add'}</button>
+        {expense && (confirmDelete
+          ? <button type="button" className="danger" disabled={remove.isPending} onClick={() => remove.mutate()}>Really delete?</button>
+          : <button type="button" className="icon danger" aria-label="Delete" title="Delete" onClick={() => setConfirmDelete(true)}><Trash2 size={18} /></button>)}
+      </div>
     </form>
   )
 }

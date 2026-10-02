@@ -12,7 +12,7 @@ module Api
       def create
         group = Group.transaction do
           g = current_user.groups.create!(params.permit(:name, :currency))
-          g.participants.create!(name: current_user.name, user: current_user)
+          g.participants.create!(name: current_user.name.to_s.first(Participant::NAME_MAX), user: current_user)
           g
         end
         audit("group.create", group, { name: group.name, currency: group.currency }, group: group)
@@ -20,7 +20,7 @@ module Api
       end
 
       def show
-        render json: json(@group).merge(participants: @group.participants.includes(:user).map { |p| p.as_json(only: %i[id name user_id]).merge(avatar_url: p.user&.avatar_url) },
+        render json: json(@group).merge(participants: @group.participants.includes(:user).map { |p| p.as_json(only: %i[id name short_name user_id]).merge(avatar_url: p.user&.avatar_url) },
                                         participant_groups: @group.participant_groups.map { |g| ParticipantGroupsController.serialize(g) })
       end
 

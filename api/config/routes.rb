@@ -16,8 +16,8 @@ Rails.application.routes.draw do
           put :order, action: :reorder, on: :collection
         end
         resources :participant_groups, only: %i[create update destroy]
-        resources :expenses, only: %i[index create destroy]
-        resources :settlements, only: %i[index create]
+        resources :expenses, only: %i[index create update destroy]
+        resources :settlements, only: %i[index create update destroy]
       end
     end
   end

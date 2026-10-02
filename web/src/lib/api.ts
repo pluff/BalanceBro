@@ -33,7 +33,7 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
 }
 
 export type User = { id: number; email: string; name: string }
-export type Participant = { id: number; name: string; user_id: number | null; avatar_url?: string | null }
+export type Participant = { id: number; name: string; short_name: string; user_id: number | null; avatar_url?: string | null }
 export type ParticipantGroup = { id: number; name: string; participant_ids: number[] }
 export type Group = {
   id: number
@@ -68,4 +68,5 @@ export type Settlement = {
   to_participant_id: number
   amount_cents: number
   settled_on: string
+  description: string | null
 }

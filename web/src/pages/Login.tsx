@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../lib/auth'
+import { Wallet } from 'lucide-react'
 import { renderGoogleButton } from '../lib/gsi'
 
 // Web: Google Identity Services button. Native (Capacitor) will need a native
@@ -16,10 +17,14 @@ export default function Login() {
   }, [loginWithGoogle])
 
   return (
-    <div className="stack">
-      <h1>BalanceBro</h1>
-      <div ref={btn} />
-      {error && <p className="error">{error}</p>}
+    <div className="login">
+      <div className="card stack">
+        <span className="logo"><Wallet size={30} /></span>
+        <h1>BalanceBro</h1>
+        <p className="muted">Split expenses, settle up.</p>
+        <div ref={btn} style={{ display: 'flex', justifyContent: 'center' }} />
+        {error && <p className="error">{error}</p>}
+      </div>
     </div>
   )
 }

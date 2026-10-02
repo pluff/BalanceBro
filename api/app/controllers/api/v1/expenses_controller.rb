@@ -2,7 +2,7 @@ module Api
   module V1
     class ExpensesController < ApplicationController
       before_action :set_group
-      before_action :require_owner!, only: :destroy
+      before_action :require_owner!, only: %i[update destroy]
 
       INCLUDES = { shares: { participant_group: :participants } }.freeze
 
@@ -14,12 +14,28 @@ module Api
       # params: description, amount_cents, spent_on, paid_by_id, participant_ids: [...], participant_group_ids: [...]
       # The expense is split equally between the union of those people and the *current* members of those groups.
       def create
-        expense = @group.expenses.new(params.permit(:description, :amount_cents, :spent_on, :paid_by_id))
-        Array(params[:participant_ids]).uniq.each { |pid| expense.shares.build(participant_id: pid) }
-        Array(params[:participant_group_ids]).uniq.each { |gid| expense.shares.build(participant_group_id: gid) }
+        expense = @group.expenses.new(expense_params)
+        build_shares(expense)
         expense.save!
         audit("expense.create", expense, json(expense, @group.participants.map(&:id)))
         render json: json(expense, @group.participants.map(&:id)), status: :created
+      end
+
+      # Same params as create (owner only). The split is replaced as a whole; an invalid edit changes nothing.
+      def update
+        expense = @group.expenses.includes(INCLUDES).find(params[:id])
+        order = @group.participants.map(&:id)
+        before = json(expense, order)
+        Expense.transaction do
+          expense.shares.destroy_all
+          expense.shares.reset
+          expense.assign_attributes(expense_params)
+          build_shares(expense)
+          expense.save!
+        end
+        expense.reload
+        audit("expense.update", expense, { before: before, after: json(expense, order) })
+        render json: json(expense, order)
       end
 
       def destroy
@@ -31,6 +47,13 @@ module Api
       end
 
       private
+
+      def expense_params = params.permit(:description, :amount_cents, :spent_on, :paid_by_id)
+
+      def build_shares(expense)
+        Array(params[:participant_ids]).uniq.each { |pid| expense.shares.build(participant_id: pid) }
+        Array(params[:participant_group_ids]).uniq.each { |gid| expense.shares.build(participant_group_id: gid) }
+      end
 
       # `splits` is derived (amount per person right now); participant_ids / participant_group_ids are what is stored.
       def json(e, order)

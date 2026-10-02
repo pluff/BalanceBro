@@ -4,6 +4,10 @@ export const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'PLN', 'CZK', 'SEK', 'NOK
 export const money = (cents: number, currency: string) =>
   new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(cents / 100)
 
+// Same amount without the currency symbol (dense tables).
+export const plain = (cents: number) =>
+  new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(cents / 100)
+
 // "12.50" or "12,5" -> 1250. Returns null for invalid/non-positive input.
 export function parseCents(input: string): number | null {
   const n = Number(input.replace(',', '.'))

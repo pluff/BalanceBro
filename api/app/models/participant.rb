@@ -1,4 +1,6 @@
 class Participant < ApplicationRecord
+  NAME_MAX = 20
+
   belongs_to :group
   belongs_to :user, optional: true
 
@@ -12,9 +14,15 @@ class Participant < ApplicationRecord
                                   inverse_of: :to_participant, dependent: :restrict_with_error
 
   normalizes :name, with: ->(n) { n.strip.squeeze(" ") }
+  normalizes :short_name, with: ->(n) { n.to_s.gsub(/\s/, "").upcase.first(3) }
 
-  validates :name, presence: true, length: { maximum: 50 },
+  # Shown on the avatar of people without a Google picture; defaults to the first three letters of the name.
+  before_validation { self.short_name = name.to_s if short_name.blank? }
+
+  validates :name, presence: true, length: { maximum: NAME_MAX },
                    uniqueness: { scope: :group_id, case_sensitive: false, message: "is already used in this MoneyPot" }
+
+  validates :short_name, presence: true, length: { maximum: 3 }
 
   before_create { self.position = (group.participants.maximum(:position) || 0) + 1 }
   before_destroy :keep_owner

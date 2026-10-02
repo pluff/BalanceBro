@@ -1,8 +1,10 @@
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { HandCoins, History } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api, type Balances, type Expense, type Group, type Settlement } from '../lib/api'
 import { money } from '../lib/money'
 import Avatar from '../components/Avatar'
+import { Loading, PageHead } from '../components/Layout'
 
 // One row of the person's ledger; `delta` is its effect on their balance (+ = owed to them).
 type Entry = { key: string; id: number; date: string; title: string; note: string; delta: number }
@@ -18,9 +20,9 @@ export default function PersonHistory() {
     queryFn: () => api<Settlement[]>(`/groups/${id}/settlements`),
   })
 
-  if (!group || !bal || !expenses || !settlements) return <p>Loading…</p>
+  if (!group || !bal || !expenses || !settlements) return <Loading />
   const person = group.participants?.find((p) => p.id === personId)
-  if (!person) return <p>Not found.</p>
+  if (!person) return <p className="empty">Not found.</p>
   const name = (x: number) => group.participants?.find((p) => p.id === x)?.name ?? `#${x}`
   const cur = group.currency
 
@@ -59,7 +61,7 @@ export default function PersonHistory() {
       id: s.id,
       date: s.settled_on,
       title: sent ? `Paid back ${name(s.to_participant_id)}` : `Received from ${name(s.from_participant_id)}`,
-      note: 'settlement',
+      note: s.description || 'settlement',
       delta,
     })
   }
@@ -69,32 +71,36 @@ export default function PersonHistory() {
   const reported = bal.balances.find((b) => b.participant_id === personId)?.amount_cents ?? 0
   const signed = (n: number) => `${n > 0 ? '+' : ''}${money(n, cur)}`
 
+  const tone = (n: number) => (n > 0 ? 'pos' : n < 0 ? 'neg' : '')
+
   return (
-    <div className="stack">
-      <Link to={`/pots/${id}/balance`}>← Balance</Link>
-      <h1 className="row" style={{ justifyContent: 'flex-start' }}><Avatar person={person} size={40} /> {person.name}</h1>
+    <>
+      <PageHead title={<span className="row start"><Avatar person={person} size={36} /> <span className="ellipsis">{person.name}</span></span>} back={`/pots/${id}/balance`} />
 
-      <ul className="stack">
-        <li className="row"><span>Paid in total</span><b>{money(paid, cur)}</b></li>
-        <li className="row"><span>Own share of expenses</span><b>{money(share, cur)}</b></li>
-        {settled !== 0 && <li className="row"><span>Settlements</span><b>{signed(settled)}</b></li>}
-        <li className="row"><span>Balance</span><b>{signed(total)}</b></li>
-      </ul>
-      {total !== reported && <p className="error">Totals do not match the server balance ({signed(reported)}).</p>}
+      <div className="stack">
+        <div className="stats">
+          <div className="stat"><small>Paid in total</small><b>{money(paid, cur)}</b></div>
+          <div className="stat"><small>Own share</small><b>{money(share, cur)}</b></div>
+          {settled !== 0 && <div className="stat"><small>Settlements</small><b className={tone(settled)}>{signed(settled)}</b></div>}
+          <div className="stat"><small>Balance</small><b className={tone(total)}>{signed(total)}</b></div>
+        </div>
+        {total !== reported && <p className="error">Totals do not match the server balance ({signed(reported)}).</p>}
 
-      <h2>History</h2>
-      {entries.length === 0 && <p>Nothing involves {person.name} yet.</p>}
-      <ul className="stack">
-        {entries.map((e) => (
-          <li key={e.key} className="expense">
-            <div className="row">
-              <span>{e.title}</span>
-              <b>{signed(e.delta)}</b>
-            </div>
-            <small>{e.date} · {e.note}</small>
-          </li>
-        ))}
-      </ul>
-    </div>
+        <section className="card">
+          <h2><History size={14} /> History</h2>
+          {entries.length === 0 && <p className="muted">Nothing involves {person.name} yet.</p>}
+          <ul className="list">
+            {entries.map((e) => (
+              <li key={e.key} className="expense">
+                <span className="when">{e.date}</span>
+                <span className="ellipsis">{e.key.startsWith('s') && <HandCoins size={14} style={{ verticalAlign: '-2px', marginRight: 4 }} />}{e.title}</span>
+                <b className={`amount ${tone(e.delta)}`}>{signed(e.delta)}</b>
+                <span className="meta"><span className="splitnames-mobile">{e.date} · </span>{e.note}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </>
   )
 }

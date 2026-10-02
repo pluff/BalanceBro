@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_03_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -100,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_130000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "position", default: 0, null: false
+    t.string "short_name", null: false
     t.index "group_id, lower((name)::text)", name: "index_participants_on_group_and_lower_name", unique: true
     t.index ["group_id", "position"], name: "index_participants_on_group_id_and_position"
     t.index ["group_id"], name: "index_participants_on_group_id"
@@ -123,6 +124,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_130000) do
     t.datetime "updated_at", null: false
     t.bigint "from_participant_id", null: false
     t.bigint "to_participant_id", null: false
+    t.string "description"
     t.index ["from_participant_id"], name: "index_settlements_on_from_participant_id"
     t.index ["group_id"], name: "index_settlements_on_group_id"
     t.index ["to_participant_id"], name: "index_settlements_on_to_participant_id"
