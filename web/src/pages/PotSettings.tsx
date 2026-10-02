@@ -121,30 +121,28 @@ export default function PotSettings() {
     <>
       <PageHead title="Settings" back={`/pots/${id}`} />
       {error && <p className="error" style={{ marginBottom: 12 }}>{error}</p>}
-      <div className="cols even">
+      <div className="cols three">
         <div className="stack">
           {canManage && (
             <section className="card stack">
               <h2><Wallet size={14} /> MoneyPot</h2>
-              {potName === null ? (
-                <p className="row">
-                  <b className="grow ellipsis">{group.name}</b>
-                  <button type="button" className="link icon" aria-label="Rename" title="Rename" onClick={() => setPotName(group.name)}><Pencil size={18} /></button>
-                </p>
-              ) : (
-                <form className="row" onSubmit={(e) => { e.preventDefault(); updatePot.mutate({ name: potName }) }}>
-                  <input autoFocus value={potName} onChange={(e) => setPotName(e.target.value)} required />
-                  <button type="submit" className="primary icon" aria-label="Save" disabled={updatePot.isPending}><Check size={18} /></button>
-                  <button type="button" className="icon" aria-label="Cancel" onClick={() => setPotName(null)}><X size={18} /></button>
-                </form>
-              )}
-
-              <label className="row">
-                Currency
-                <select value={group.currency} disabled={updatePot.isPending} onChange={(e) => updatePot.mutate({ currency: e.target.value })}>
+              <div className="row">
+                {potName === null ? (
+                  <span className="row start grow">
+                    <b className="ellipsis">{group.name}</b>
+                    <button type="button" className="link icon" aria-label="Rename" title="Rename" onClick={() => setPotName(group.name)}><Pencil size={18} /></button>
+                  </span>
+                ) : (
+                  <form className="row grow" onSubmit={(e) => { e.preventDefault(); updatePot.mutate({ name: potName }) }}>
+                    <input autoFocus value={potName} onChange={(e) => setPotName(e.target.value)} required />
+                    <button type="submit" className="primary icon" aria-label="Save" disabled={updatePot.isPending}><Check size={18} /></button>
+                    <button type="button" className="icon" aria-label="Cancel" onClick={() => setPotName(null)}><X size={18} /></button>
+                  </form>
+                )}
+                <select aria-label="Currency" value={group.currency} disabled={updatePot.isPending} onChange={(e) => updatePot.mutate({ currency: e.target.value })}>
                   {(CURRENCIES.includes(group.currency) ? CURRENCIES : [group.currency, ...CURRENCIES]).map((c) => <option key={c}>{c}</option>)}
                 </select>
-              </label>
+              </div>
               <small>Changing the currency only relabels existing amounts, it does not convert them.</small>
             </section>
           )}
@@ -164,52 +162,6 @@ export default function PotSettings() {
               )}
             </section>
           )}
-
-          <section className="card stack">
-            <h2><Users size={14} /> Groups of people</h2>
-            <small>Shortcuts for the “Split equally between” list when adding an expense.</small>
-            {groups.length === 0 && !draft && <p className="muted">No groups yet.</p>}
-            <ul className="list">
-              {groups.map((g) => (
-                <li key={g.id} className="row">
-                  <span className="grow">
-                    <b>{g.name}</b>
-                    <br />
-                    <small>{g.participant_ids.map((x) => people.find((p) => p.id === x)?.name).filter(Boolean).join(', ')}</small>
-                  </span>
-                  {canManage && (
-                    <>
-                      <button type="button" className="link icon" aria-label="Edit" title="Edit" onClick={() => { setDraft({ id: g.id, name: g.name, ids: g.participant_ids }); setConfirmGroupId(null) }}><Pencil size={18} /></button>
-                      {confirmGroupId === g.id ? (
-                        <button type="button" className="danger" onClick={() => removeGroup.mutate(g.id)}>Really delete?</button>
-                      ) : (
-                        <button type="button" className="link icon danger" aria-label="Delete" title="Delete" onClick={() => setConfirmGroupId(g.id)}><Trash2 size={18} /></button>
-                      )}
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-
-            {draft ? (
-              <form className="stack" onSubmit={(e) => { e.preventDefault(); saveGroup.mutate(draft) }}>
-                <input autoFocus placeholder="Group name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
-                <div className="checks">
-                  {people.map((p) => (
-                    <label key={p.id} className="check">
-                      <input type="checkbox" checked={draft.ids.includes(p.id)} onChange={() => toggleMember(p.id)} /> {p.name}
-                    </label>
-                  ))}
-                </div>
-                <span className="row">
-                  <button type="submit" className="primary" disabled={draft.ids.length === 0 || saveGroup.isPending}><Check size={16} /> Save group</button>
-                  <button type="button" onClick={() => setDraft(null)}>Cancel</button>
-                </span>
-              </form>
-            ) : (
-              <button type="button" onClick={() => setDraft({ id: null, name: '', ids: [] })}><Plus size={16} /> New group</button>
-            )}
-          </section>
         </div>
 
         <section className="card stack">
@@ -252,6 +204,52 @@ export default function PotSettings() {
               <input className="short" aria-label="Short name" placeholder="ABC" maxLength={3} value={newShort} onChange={(e) => setNewShort(e.target.value.toUpperCase())} />
               <button type="submit" className="primary icon" aria-label="Add person"><Plus size={18} /></button>
             </form>
+          )}
+        </section>
+
+        <section className="card stack">
+          <h2><Users size={14} /> Groups of people</h2>
+          <small>Shortcuts for the “Split equally between” list when adding an expense.</small>
+          {groups.length === 0 && !draft && <p className="muted">No groups yet.</p>}
+          <ul className="list">
+            {groups.map((g) => (
+              <li key={g.id} className="row">
+                <span className="grow">
+                  <b>{g.name}</b>
+                  <br />
+                  <small>{g.participant_ids.map((x) => people.find((p) => p.id === x)?.name).filter(Boolean).join(', ')}</small>
+                </span>
+                {canManage && (
+                  <>
+                    <button type="button" className="link icon" aria-label="Edit" title="Edit" onClick={() => { setDraft({ id: g.id, name: g.name, ids: g.participant_ids }); setConfirmGroupId(null) }}><Pencil size={18} /></button>
+                    {confirmGroupId === g.id ? (
+                      <button type="button" className="danger" onClick={() => removeGroup.mutate(g.id)}>Really delete?</button>
+                    ) : (
+                      <button type="button" className="link icon danger" aria-label="Delete" title="Delete" onClick={() => setConfirmGroupId(g.id)}><Trash2 size={18} /></button>
+                    )}
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {draft ? (
+            <form className="stack" onSubmit={(e) => { e.preventDefault(); saveGroup.mutate(draft) }}>
+              <input autoFocus placeholder="Group name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
+              <div className="checks">
+                {people.map((p) => (
+                  <label key={p.id} className="check">
+                    <input type="checkbox" checked={draft.ids.includes(p.id)} onChange={() => toggleMember(p.id)} /> {p.name}
+                  </label>
+                ))}
+              </div>
+              <span className="row">
+                <button type="submit" className="primary" disabled={draft.ids.length === 0 || saveGroup.isPending}><Check size={16} /> Save group</button>
+                <button type="button" onClick={() => setDraft(null)}>Cancel</button>
+              </span>
+            </form>
+          ) : (
+            <button type="button" onClick={() => setDraft({ id: null, name: '', ids: [] })}><Plus size={16} /> New group</button>
           )}
         </section>
       </div>

@@ -91,20 +91,18 @@ function Form({ group, meId, expense }: { group: Group; meId: number; expense?: 
             <span className="row start"><Wallet size={14} /> Amount ({group.currency})</span>
             <input inputMode="decimal" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} required />
           </label>
-          <div className="row" style={{ alignItems: 'flex-end' }}>
-            <label className="field grow">
-              <span className="row start"><Calendar size={14} /> Date</span>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-            </label>
-            <label className="field grow">
-              <span className="row start"><CircleUser size={14} /> Paid by</span>
-              <select value={paidBy} onChange={(e) => setPaidBy(Number(e.target.value))}>
-                {people.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label className="field">
+            <span className="row start"><CircleUser size={14} /> Paid by</span>
+            <select value={paidBy} onChange={(e) => setPaidBy(Number(e.target.value))}>
+              {people.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span className="row start"><Calendar size={14} /> Date</span>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </label>
         </div>
         <section className="card" style={{ minWidth: 0 }}>
           <h2><Users size={14} /> Split equally between</h2>

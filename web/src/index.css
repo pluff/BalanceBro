@@ -165,7 +165,8 @@ button.danger { color: var(--neg); }
 .pot-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--gold-soft); color: var(--gold-strong); display: grid; place-items: center; }
 .badge { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; padding: 2px 8px; border-radius: 99px; background: var(--gold-soft); color: var(--gold-strong); }
 
-.cols { display: grid; gap: 14px; grid-template-columns: 1fr; align-items: start; }
+.cols { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.cols > * { min-width: 0; }
 .expense { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; }
 .expense .meta { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: .8rem; color: var(--muted); }
 .expense .when, .expense .splitnames { display: none; }
@@ -192,6 +193,7 @@ button.danger { color: var(--neg); }
   .pots { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
   .cols.two { grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); }
   .cols.even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hide-sm { display: inline; }
   .only-sm { display: none; }
   .fabs { position: static; }
@@ -206,6 +208,7 @@ button.danger { color: var(--neg); }
   .checks { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 }
 @media (min-width: 1100px) {
+  .cols.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .h1-big { font-size: 1.8rem; }
 }
 @media (min-width: 720px) { .splitnames-mobile { display: none; } }
