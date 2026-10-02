@@ -38,7 +38,7 @@ export default function PotBalance() {
         <section className="card">
           <h2><Scale size={14} /> Per person</h2>
           <div className="cloudwrap">
-            <div className="cloud" style={{ aspectRatio: `${cloud.width} / ${cloud.height}`, maxWidth: cloud.width * 115, minWidth: cloud.width * 90 }}>
+            <div className="cloud" style={{ aspectRatio: `${cloud.width} / ${cloud.height}`, maxWidth: cloud.width * 115 }}>
               {people.map((p, i) => {
                 const n = net(p.id)
                 const c = cloud.circles[i]

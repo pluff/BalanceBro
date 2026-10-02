@@ -246,7 +246,7 @@ a.rowlink:hover { color: var(--gold-strong); text-decoration: underline; }
 .ledger td.num, .ledger td.num b { font-size: .7rem; }
 
 /* balance cloud: circles packed together, area ~ amount; green = is owed, red = owes */
-.cloudwrap { overflow-x: auto; padding: 4px 0; }
+.cloudwrap { padding: 4px 0; }
 .cloud { position: relative; width: 100%; margin: 0 auto; }
 .bubble {
   --c: var(--muted);
