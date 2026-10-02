@@ -3,6 +3,16 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+
+  # cache/queue/cable may share the primary database (single DATABASE_URL, e.g. Railway).
+  # db:prepare only loads their schemas into a freshly created database, so load any missing ones.
+  missing=$(./bin/rails runner '
+    puts({ cache: SolidCache::Entry, queue: SolidQueue::Job, cable: SolidCable::Message }
+      .reject { |_, m| m.connection.table_exists?(m.table_name) }.keys.join(" "))
+  ' | tail -n 1)
+  for name in $missing; do
+    DISABLE_DATABASE_ENVIRONMENT_CHECK=1 ./bin/rails "db:schema:load:$name"
+  done
 fi
 
 exec "${@}"
