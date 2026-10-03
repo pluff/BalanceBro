@@ -1,6 +1,16 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # OAuth 2.1 authorization server + MCP endpoint (see OauthController, McpController)
+  get  ".well-known/oauth-protected-resource(/*path)", to: "oauth#resource_metadata"
+  get  ".well-known/oauth-authorization-server",        to: "oauth#server_metadata"
+  post "oauth/register",  to: "oauth#register"
+  get  "oauth/authorize", to: "oauth#authorize"
+  post "oauth/authorize", to: "oauth#approve"
+  post "oauth/token",     to: "oauth#token"
+  post "mcp", to: "mcp#handle"
+  match "mcp", to: "mcp#unsupported", via: %i[get delete]
+
   namespace :api do
     namespace :v1 do
       post   "auth/google", to: "sessions#google"

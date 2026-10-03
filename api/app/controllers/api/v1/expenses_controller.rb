@@ -2,7 +2,6 @@ module Api
   module V1
     class ExpensesController < ApplicationController
       before_action :set_group
-      before_action :require_owner!, only: %i[update destroy]
 
       INCLUDES = { shares: { participant_group: :participants } }.freeze
 

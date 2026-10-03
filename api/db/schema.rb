@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_03_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -72,6 +72,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_150000) do
     t.string "share_token"
     t.index ["owner_id"], name: "index_groups_on_owner_id"
     t.index ["share_token"], name: "index_groups_on_share_token", unique: true
+  end
+
+  create_table "oauth_clients", force: :cascade do |t|
+    t.string "client_id", null: false
+    t.string "name", null: false
+    t.jsonb "redirect_uris", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_oauth_clients_on_client_id", unique: true
+  end
+
+  create_table "oauth_codes", force: :cascade do |t|
+    t.bigint "oauth_client_id", null: false
+    t.bigint "user_id", null: false
+    t.string "code_digest", null: false
+    t.string "redirect_uri", null: false
+    t.string "code_challenge", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code_digest"], name: "index_oauth_codes_on_code_digest", unique: true
+    t.index ["oauth_client_id"], name: "index_oauth_codes_on_oauth_client_id"
+    t.index ["user_id"], name: "index_oauth_codes_on_user_id"
+  end
+
+  create_table "oauth_tokens", force: :cascade do |t|
+    t.bigint "oauth_client_id", null: false
+    t.bigint "user_id", null: false
+    t.string "access_digest", null: false
+    t.string "refresh_digest", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "refresh_expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_digest"], name: "index_oauth_tokens_on_access_digest", unique: true
+    t.index ["oauth_client_id"], name: "index_oauth_tokens_on_oauth_client_id"
+    t.index ["refresh_digest"], name: "index_oauth_tokens_on_refresh_digest", unique: true
+    t.index ["user_id"], name: "index_oauth_tokens_on_user_id"
   end
 
   create_table "participant_group_members", force: :cascade do |t|
@@ -149,6 +187,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_150000) do
   add_foreign_key "group_memberships", "groups"
   add_foreign_key "group_memberships", "users"
   add_foreign_key "groups", "users", column: "owner_id"
+  add_foreign_key "oauth_codes", "oauth_clients"
+  add_foreign_key "oauth_codes", "users"
+  add_foreign_key "oauth_tokens", "oauth_clients"
+  add_foreign_key "oauth_tokens", "users"
   add_foreign_key "participant_group_members", "participant_groups"
   add_foreign_key "participant_group_members", "participants"
   add_foreign_key "participant_groups", "groups"

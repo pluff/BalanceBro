@@ -33,7 +33,7 @@ export default function PotBalance() {
   return (
     <>
       <PageHead title="Balance" back={`/pots/${id}`}>
-        {group.is_owner && <Link to={`/pots/${id}/settlements/new`} className="btn"><HandCoins size={18} /><span className="hide-sm">Add payback</span></Link>}
+        <Link to={`/pots/${id}/settlements/new`} className="btn"><HandCoins size={18} /><span className="hide-sm">Add payback</span></Link>
       </PageHead>
       <div className="cols even">
         <section className="card">
@@ -71,7 +71,7 @@ export default function PotBalance() {
         <section className="card">
           <h2><ArrowRight size={14} /> Who pays whom</h2>
           {bal.transfers.length === 0 && <div className="empty"><PartyPopper size={36} />All settled up.</div>}
-          <Transfers transfers={bal.transfers} person={find} currency={group.currency} settleBase={group.is_owner ? `/pots/${id}/settlements/new` : undefined} />
+          <Transfers transfers={bal.transfers} person={find} currency={group.currency} settleBase={`/pots/${id}/settlements/new`} />
         </section>
       </div>
     </>

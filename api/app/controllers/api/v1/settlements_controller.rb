@@ -2,7 +2,6 @@ module Api
   module V1
     class SettlementsController < ApplicationController
       before_action :set_group
-      before_action :require_owner!, only: %i[create update destroy]
 
       FIELDS = %i[id from_participant_id to_participant_id amount_cents settled_on description].freeze
 

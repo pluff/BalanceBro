@@ -112,7 +112,7 @@ export default function PotSettings() {
     setDraft((d) => d && { ...d, ids: d.ids.includes(pid) ? d.ids.filter((x) => x !== pid) : [...d.ids, pid] })
 
   const isOwner = (p: Participant) => p.user_id === group.owner_id
-  const canManage = group.is_owner // members can read, add expenses and create groups; the rest is the owner's
+  const canManage = group.is_owner // members can read, add/edit expenses and paybacks and create groups; the rest is the owner's
   const shareUrl = group.share_token ? `${import.meta.env.VITE_APP_URL || window.location.origin}/#/join/${group.share_token}` : ''
   const copyLink = () =>
     navigator.clipboard.writeText(shareUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) }).catch(() => {})

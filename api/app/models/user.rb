@@ -3,6 +3,8 @@ class User < ApplicationRecord
   has_many :groups, foreign_key: :owner_id, inverse_of: :owner, dependent: :destroy
   has_many :participants, dependent: :nullify
   has_many :group_memberships, dependent: :destroy
+  has_many :oauth_codes, dependent: :destroy
+  has_many :oauth_tokens, dependent: :destroy
 
   normalizes :email, with: ->(e) { e.strip.downcase }
 

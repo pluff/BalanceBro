@@ -28,10 +28,9 @@ export default function GroupDetail() {
   const spent = (pid: number) => expenses.reduce((sum, e) => sum + (e.splits.find((x) => x.participant_id === pid)?.amount_cents ?? 0), 0)
   const net = (pid: number) => bal.balances.find((b) => b.participant_id === pid)?.amount_cents ?? 0
   const total = expenses.reduce((s, e) => s + e.amount_cents, 0)
-  // Whole "What" cell is the link (owner only).
-  const cell = (to: string, content: React.ReactNode) => (group.is_owner ? <Link to={to} className="cell">{content}</Link> : <span className="cell">{content}</span>)
-  // Only the owner may edit, so only they get a clickable text.
-  const label = (to: string, text: React.ReactNode) => (group.is_owner ? <Link to={to} className="rowlink">{text}</Link> : text)
+  // Whole "What" cell is the link; any member may edit.
+  const cell = (to: string, content: React.ReactNode) => <Link to={to} className="cell">{content}</Link>
+  const label = (to: string, text: React.ReactNode) => <Link to={to} className="rowlink">{text}</Link>
   // Expenses and paybacks in one timeline, newest first (sort is stable, so same-day order is kept).
   const items = [
     ...expenses.map((e) => ({ kind: 'e' as const, key: `e${e.id}`, date: e.spent_on, e })),
@@ -42,11 +41,9 @@ export default function GroupDetail() {
     <>
       <PageHead title={group.name} back="/">
         <div className="fabs">
-          {group.is_owner && (
-            <Link to={`/pots/${id}/settlements/new`} className="payback" aria-label="Add payback">
-              <Plus size={18} /><span className="only-sm">Payback</span><span className="hide-sm">Add payback</span>
-            </Link>
-          )}
+          <Link to={`/pots/${id}/settlements/new`} className="payback" aria-label="Add payback">
+            <Plus size={18} /><span className="only-sm">Payback</span><span className="hide-sm">Add payback</span>
+          </Link>
           <Link to={`/pots/${id}/expenses/new`} className="add" aria-label="Add expense">
             <Plus size={18} /><span className="only-sm">Expense</span><span className="hide-sm">Add expense</span>
           </Link>
