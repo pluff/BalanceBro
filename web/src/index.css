@@ -108,6 +108,13 @@ svg { flex: none; }
 
 .pagehead { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .pagehead h1 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crumbs { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.crumbs span[aria-hidden] { color: var(--muted); }
+.crumbs a { color: var(--text); min-width: 0; }
+.crumbs a:hover { color: var(--gold-strong); }
+.kind { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); }
+.kind a { padding: 6px 14px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+.kind a.on { background: var(--gold); color: var(--on-gold); }
 .back { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); color: var(--text); flex: none; }
 
 input, button, select { font: inherit; color: inherit; }
@@ -149,17 +156,12 @@ button.danger { color: var(--neg); }
 .hide-sm { display: none; }
 .only-sm { display: inline; }
 
-/* phone: two labelled pills pinned bottom-right; desktop: plain buttons in the page header */
-.fabs {
+/* phone: round button pinned bottom-right; desktop: sits at the right end of the tabs row */
+.fab {
   position: fixed; right: 16px; bottom: calc(var(--nav-h) + 14px + env(safe-area-inset-bottom)); z-index: 9;
-  display: flex; gap: 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 52px; padding: 0 20px; border-radius: 99px; font-weight: 600;
+  background: var(--gold); color: var(--on-gold); box-shadow: 0 6px 18px #0003;
 }
-.fabs > a {
-  display: inline-flex; align-items: center; gap: 6px; height: 46px; padding: 0 16px; border-radius: 99px;
-  font-weight: 600; box-shadow: 0 6px 18px #0003; white-space: nowrap;
-}
-.fabs .add { background: var(--gold); color: var(--on-gold); }
-.fabs .repay { background: var(--surface); color: var(--gold-strong); border: 1px solid var(--gold); }
 .avatars { display: inline-flex; }
 .avatars > * + * { margin-left: -6px; box-shadow: 0 0 0 2px var(--surface); border-radius: 50%; }
 
@@ -200,9 +202,9 @@ button.danger { color: var(--neg); }
   .cols.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hide-sm { display: inline; }
   .only-sm { display: none; }
-  .fabs { position: static; }
-  .fabs > a { height: auto; padding: 10px 14px; border-radius: 10px; box-shadow: none; }
-  .fabs .repay { border-color: var(--line); color: var(--text); }
+  .tabrow { display: flex; align-items: flex-start; gap: 12px; }
+  .tabrow .tabs { flex: 1; }
+  .fab { position: static; height: 38px; padding: 0 16px; font-size: .9rem; box-shadow: none; flex: none; }
   .expense { grid-template-columns: 90px 1fr auto; }
   .expense .when { display: block; grid-row: 1 / span 2; color: var(--muted); font-size: .85rem; }
   .expense .meta { grid-column: 2 / 3; }

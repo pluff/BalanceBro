@@ -4,7 +4,7 @@ import { Calendar, Check, CircleUser, Tag, Trash2, Users, Wallet } from 'lucide-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type Expense, type Group, type User } from '../lib/api'
 import { parseCents } from '../lib/money'
-import { Loading, PageHead } from '../components/Layout'
+import { KindSwitch, Loading, PageHead } from '../components/Layout'
 
 export default function NewExpense() {
   const { id, eid } = useParams()
@@ -79,7 +79,9 @@ function Form({ group, meId, expense }: { group: Group; meId: number; expense?: 
 
   return (
     <form onSubmit={submit} className="stack">
-      <PageHead title={expense ? 'Edit expense' : 'Add expense'} back={`/pots/${group.id}`} />
+      <PageHead title={expense ? 'Edit expense' : 'Add expense'} back={`/pots/${group.id}`}>
+        {!expense && <KindSwitch potId={group.id} active="expense" />}
+      </PageHead>
       <div className="cols even">
         <div className="card stack">
           <label className="field">

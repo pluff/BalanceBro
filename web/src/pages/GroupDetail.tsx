@@ -1,11 +1,11 @@
 import { useParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, HandCoins, Plus, Receipt, ShoppingBag } from 'lucide-react'
+import { ArrowRight, HandCoins, Receipt, ShoppingBag } from 'lucide-react'
 import { api, type Balances, type Expense, type Group, type Settlement } from '../lib/api'
 import { money, plain } from '../lib/money'
 import Avatar from '../components/Avatar'
-import { Loading, PageHead } from '../components/Layout'
+import { Loading } from '../components/Layout'
 
 export default function GroupDetail() {
   const { id } = useParams()
@@ -39,17 +39,6 @@ export default function GroupDetail() {
 
   return (
     <>
-      <PageHead title={group.name} back="/">
-        <div className="fabs">
-          <Link to={`/pots/${id}/settlements/new`} className="payback" aria-label="Add payback">
-            <Plus size={18} /><span className="only-sm">Payback</span><span className="hide-sm">Add payback</span>
-          </Link>
-          <Link to={`/pots/${id}/expenses/new`} className="add" aria-label="Add expense">
-            <Plus size={18} /><span className="only-sm">Expense</span><span className="hide-sm">Add expense</span>
-          </Link>
-        </div>
-      </PageHead>
-
       <div className="cols potpage">
         <section className="card">
           <h2><Receipt size={14} /> History</h2>

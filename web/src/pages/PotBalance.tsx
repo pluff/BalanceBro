@@ -39,7 +39,7 @@ export default function PotBalance() {
       <UnallocatedWarning count={bal.unallocated_count} />
       <div className="cols even">
         <section className="card">
-          <h2><Scale size={14} /> Per person</h2>
+          <h2><Scale size={14} /> Debt map</h2>
           <div className="cloudwrap">
             <div className="cloud" style={{ aspectRatio: `${cloud.width} / ${cloud.height}`, maxWidth: cloud.width * 115 }}>
               {people.map((p, i) => {

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calendar, Check, CircleUser, Tag, Trash2, Wallet } from 'lucide-react'
 import { api, type Group, type Settlement } from '../lib/api'
 import { parseCents } from '../lib/money'
-import { Loading, PageHead } from '../components/Layout'
+import { KindSwitch, Loading, PageHead } from '../components/Layout'
 
 export default function NewSettlement() {
   const { id, sid } = useParams()
@@ -67,7 +67,9 @@ function Form({ group, settlement }: { group: Group; settlement?: Settlement }) 
 
   return (
     <form onSubmit={submit} className="stack">
-      <PageHead title={settlement ? 'Edit payback' : 'Add payback'} back={`/pots/${group.id}`} />
+      <PageHead title={settlement ? 'Edit payback' : 'Add payback'} back={`/pots/${group.id}`}>
+        {!settlement && <KindSwitch potId={group.id} active="payback" />}
+      </PageHead>
       <div className="card stack" style={{ maxWidth: 520 }}>
         <label className="field"><span className="row start"><CircleUser size={14} /> Who paid back</span>{select(from, setFrom)}</label>
         <label className="field"><span className="row start"><CircleUser size={14} /> Paid to</span>{select(to, setTo)}</label>
