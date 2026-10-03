@@ -58,6 +58,9 @@ module Mcp
       failure("Not found: the pot, person or group does not exist or you have no access to it.")
     rescue ActiveRecord::RecordInvalid => e
       failure("Invalid: #{e.record.errors.full_messages.to_sentence}")
+    rescue StandardError => e
+      Rails.logger.error("MCP tool failed: #{e.class}: #{e.message}\n#{e.backtrace.first(10).join("\n")}")
+      failure("Internal error while running the tool. Try again later.")
     end
 
     def failure(text) = { content: [ { type: "text", text: text } ], isError: true }

@@ -77,7 +77,7 @@ module Mcp
       pot_summary(pot).merge(
         your_participant_id: pot.participants.find { |p| p.user_id == @user.id }&.id,
         participants: pot.participants.map { |p| p.as_json(only: %i[id name short_name]) },
-        participant_groups: pot.participant_groups.includes(:participants).map { |g| ParticipantGroupsController.serialize(g) },
+        participant_groups: pot.participant_groups.includes(:participants).map { |g| Api::V1::ParticipantGroupsController.serialize(g) },
         expenses: pot.expenses.includes(Api::V1::ExpensesController::INCLUDES).order(spent_on: :desc, id: :desc).map { |e| expense_json(e, order) },
         paybacks: pot.settlements.order(settled_on: :desc, id: :desc).as_json(only: SETTLEMENT_FIELDS),
         balances: balances.balances.map { |id, c| { participant_id: id, amount_cents: c } },
