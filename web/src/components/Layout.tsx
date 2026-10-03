@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation, useMatch, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Scale, LogOut, Receipt, ScrollText, Settings, Wallet } from 'lucide-react'
+import { ArrowLeft, Plus, Scale, CircleHelp, LogOut, Receipt, ScrollText, Settings, Wallet } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useAuth } from '../lib/auth'
@@ -21,6 +21,7 @@ export function Layout() {
             </nav>
           )}
           <span className="spacer" />
+          <Link to="/faq" className="link icon" aria-label="FAQ" title="FAQ"><CircleHelp size={20} /></Link>
           <button className="link icon" onClick={logout} aria-label="Log out" title="Log out"><LogOut size={20} /></button>
         </div>
       </header>

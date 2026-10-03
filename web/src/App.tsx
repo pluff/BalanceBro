@@ -9,6 +9,7 @@ import PotBalance from './pages/PotBalance'
 import PersonHistory from './pages/PersonHistory'
 import NewSettlement from './pages/NewSettlement'
 import AuditLogs from './pages/AuditLogs'
+import Faq from './pages/Faq'
 import Join from './pages/Join'
 import { Layout, PotLayout } from './components/Layout'
 
@@ -20,6 +21,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Groups />} />
+        <Route path="/faq" element={<Faq />} />
         <Route path="/join/:token" element={<Join />} />
         <Route path="/pots/:id" element={<PotLayout />}>
           <Route index element={<GroupDetail />} />

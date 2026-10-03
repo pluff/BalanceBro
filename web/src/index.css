@@ -141,6 +141,10 @@ button.primary { background: var(--gold); border-color: var(--gold); color: var(
 button.primary:hover:not(:disabled) { background: var(--gold-strong); border-color: var(--gold-strong); }
 button.link { border: 0; background: none; padding: 6px; color: var(--gold-strong); font-weight: 500; }
 button.icon { padding: 8px; width: 36px; height: 36px; }
+a.link.icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; color: var(--gold-strong); }
+.faq h2 { text-transform: none; font-size: 1.05rem; }
+.faq ol { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.faq code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-size: .85em; word-break: break-all; }
 button.danger { color: var(--neg); }
 .error { color: var(--neg); background: color-mix(in srgb, var(--neg) 12%, transparent); padding: 10px 12px; border-radius: 10px; font-size: .9rem; }
 
