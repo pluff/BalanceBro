@@ -1,6 +1,9 @@
 import { BASE } from '../lib/api'
 import { PageHead } from '../components/Layout'
 
+// Same-origin builds have an empty API base, so fall back to the page origin.
+const mcpUrl = `${BASE || window.location.origin}/mcp`
+
 export default function Faq() {
   return (
     <>
@@ -11,7 +14,7 @@ export default function Faq() {
           Yes. BalanceBro has an MCP server, so an AI assistant such as Claude can read your pots and record expenses and
           paybacks for you. It acts as you, with the same access you have in the app.
         </p>
-        <p>Server URL: <code>{BASE}/mcp</code></p>
+        <p>Server URL: <code>{mcpUrl}</code></p>
         <p><b>How to install</b></p>
         <ol>
           <li>In Claude, open Settings → Connectors and choose Add custom connector.</li>
