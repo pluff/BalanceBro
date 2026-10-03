@@ -5,6 +5,7 @@ import { api, type Balances, type Expense, type Group } from '../lib/api'
 import { plain } from '../lib/money'
 import { packCircles } from '../lib/pack'
 import Transfers from '../components/Transfers'
+import UnallocatedWarning from '../components/UnallocatedWarning'
 import { Loading, PageHead } from '../components/Layout'
 
 export default function PotBalance() {
@@ -35,6 +36,7 @@ export default function PotBalance() {
       <PageHead title="Balance" back={`/pots/${id}`}>
         <Link to={`/pots/${id}/settlements/new`} className="btn"><HandCoins size={18} /><span className="hide-sm">Add payback</span></Link>
       </PageHead>
+      <UnallocatedWarning count={bal.unallocated_count} />
       <div className="cols even">
         <section className="card">
           <h2><Scale size={14} /> Per person</h2>

@@ -62,7 +62,8 @@ module Api
       def balances
         calc = GroupBalances.new(@group)
         render json: { balances: calc.balances.map { |id, c| { participant_id: id, amount_cents: c } },
-                       transfers: calc.transfers.map(&:to_h) }
+                       transfers: calc.transfers.map(&:to_h),
+                       unallocated_count: calc.unallocated_count }
       end
 
       private

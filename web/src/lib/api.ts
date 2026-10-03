@@ -49,6 +49,7 @@ export type DeletedGroup = { id: number; name: string; currency: string; deleted
 export type Balances = {
   balances: { participant_id: number; amount_cents: number }[]
   transfers: { from_participant_id: number; to_participant_id: number; amount_cents: number }[]
+  unallocated_count: number // expenses nobody shares yet; left out of balances and transfers
 }
 
 export type Expense = {
@@ -61,6 +62,7 @@ export type Expense = {
   participant_ids: number[]
   participant_group_ids: number[]
   splits: { participant_id: number; amount_cents: number }[]
+  unallocated: boolean // nobody shares it yet
 }
 
 export type AuditLog = {

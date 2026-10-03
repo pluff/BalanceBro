@@ -13,6 +13,7 @@ class GroupBalances
       net = Hash.new(0)
       order = @group.participants.map(&:id)
       @group.expenses.includes(shares: { participant_group: :participants }).each do |e|
+        next if e.unallocated?(order) # nobody owes the payer yet
         net[e.paid_by_id] += e.amount_cents
         e.split_amounts(order).each { |pid, cents| net[pid] -= cents }
       end
@@ -21,6 +22,14 @@ class GroupBalances
         net[s.to_participant_id] -= s.amount_cents
       end
       net
+    end
+  end
+
+  # Expenses nobody shares yet; they are not part of balances or transfers.
+  def unallocated_count
+    @unallocated_count ||= begin
+      order = @group.participants.map(&:id)
+      @group.expenses.includes(shares: { participant_group: :participants }).count { |e| e.unallocated?(order) }
     end
   end
 

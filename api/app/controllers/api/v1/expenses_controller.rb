@@ -12,6 +12,7 @@ module Api
 
       # params: description, amount_cents, spent_on, paid_by_id, participant_ids: [...], participant_group_ids: [...]
       # The expense is split equally between the union of those people and the *current* members of those groups.
+      # With none of them it is saved as unallocated: it counts in no one's balance until people are added.
       def create
         expense = @group.expenses.new(expense_params)
         build_shares(expense)
@@ -59,7 +60,8 @@ module Api
         e.as_json(only: %i[id description amount_cents spent_on paid_by_id])
          .merge(participant_ids: e.shares.filter_map(&:participant_id),
                 participant_group_ids: e.shares.filter_map(&:participant_group_id),
-                splits: e.split_amounts(order).map { |pid, cents| { participant_id: pid, amount_cents: cents } })
+                splits: e.split_amounts(order).map { |pid, cents| { participant_id: pid, amount_cents: cents } },
+                unallocated: e.unallocated?(order))
       end
     end
   end

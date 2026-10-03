@@ -8,7 +8,6 @@ class Expense < ApplicationRecord
   validates :description, presence: true
   validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }
   validate :shares_belong_to_group
-  validate :has_recipients
 
   # Participant ids sharing this expense: direct picks plus current members of picked groups, in the pot's
   # display order (`order` = the pot's participant ids) so the extra cents of an uneven split go to the first.
@@ -24,6 +23,9 @@ class Expense < ApplicationRecord
     ids.each_with_index.to_h { |id, i| [id, base + (i < rem ? 1 : 0)] }
   end
 
+  # Nobody shares it: the money was spent but not yet assigned to anyone. It stays out of the balances.
+  def unallocated?(order = group.participants.map(&:id)) = recipient_ids(order).empty?
+
   private
 
   def shares_belong_to_group
@@ -34,7 +36,4 @@ class Expense < ApplicationRecord
     errors.add(:base, "groups must belong to this MoneyPot") if ParticipantGroup.where(id: gids.uniq, group_id: group_id).count != gids.uniq.size
   end
 
-  def has_recipients
-    errors.add(:shares, "must include at least one person") if shares.empty? || recipient_ids.empty?
-  end
 end

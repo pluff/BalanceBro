@@ -20,14 +20,18 @@ module Mcp
                      "expense (who paid, total, and each person's share), every payback, each person's net balance and the " \
                      "minimal transfers that would settle everyone. Use it to answer who owes whom, what was spent, or to " \
                      "look up participant ids before adding records. Balances: positive = the pot owes that person, " \
-                     "negative = they owe the pot. All amounts are integer cents.",
+                     "negative = they owe the pot. Expenses with unallocated: true have no one sharing them: they are " \
+                     "left out of balances and transfers, so mention unallocated_expenses (a count) when it is above 0. " \
+                     "All amounts are integer cents.",
         inputSchema: { type: "object", properties: { pot_id: POT_ID }, required: %w[pot_id] },
         annotations: { title: "Get MoneyPot details", readOnlyHint: true } },
       { name: "add_expense",
         description: "Record a new expense in a BalanceBro MoneyPot: one person paid, and the cost is split equally between " \
-                     "the chosen people. Use for \"I paid 40 for dinner\" or \"Anna bought groceries for the three of us\". " \
-                     "Call get_pot first to get participant ids. This changes data: confirm ambiguous details (amount, " \
-                     "who shared it) with the user before calling.",
+                     "the chosen people (or, if explicitly asked, left unallocated). Use for \"I paid 40 for dinner\" or \"Anna bought groceries for the three of us\". " \
+                     "Call get_pot first to get participant ids. If the user says nobody/no one shares it yet, or that " \
+                     "it is not distributed yet, pass unallocated: true: the expense is marked \"unallocated\" and is left " \
+                     "out of balances until people are added in the app. This changes data: confirm ambiguous details " \
+                     "(amount, who shared it) with the user before calling.",
         inputSchema: { type: "object", required: %w[pot_id description amount_cents], properties: {
           pot_id: POT_ID,
           description: { type: "string", description: "What the money was spent on, e.g. \"Dinner\"." },
@@ -35,6 +39,7 @@ module Mcp
           paid_by_id: { type: "integer", description: "#{PERSON} Who paid. Defaults to the user's own person in the pot." },
           participant_ids: { type: "array", items: { type: "integer" }, description: "People who share the cost. Defaults to everyone in the pot unless participant_group_ids is given." },
           participant_group_ids: { type: "array", items: { type: "integer" }, description: "Saved participant groups (from get_pot) whose current members share the cost." },
+          unallocated: { type: "boolean", description: "True to record the expense with no one sharing it (participant_ids and participant_group_ids must then be empty). Default false: everyone in the pot shares it." },
           spent_on: { type: "string", format: "date", description: "YYYY-MM-DD. Defaults to today." }
         } },
         annotations: { title: "Add expense", readOnlyHint: false, destructiveHint: false } },
@@ -80,6 +85,7 @@ module Mcp
         participant_groups: pot.participant_groups.includes(:participants).map { |g| Api::V1::ParticipantGroupsController.serialize(g) },
         expenses: pot.expenses.includes(Api::V1::ExpensesController::INCLUDES).order(spent_on: :desc, id: :desc).map { |e| expense_json(e, order) },
         paybacks: pot.settlements.order(settled_on: :desc, id: :desc).as_json(only: SETTLEMENT_FIELDS),
+        unallocated_expenses: balances.unallocated_count,
         balances: balances.balances.map { |id, c| { participant_id: id, amount_cents: c } },
         suggested_transfers: balances.transfers.map(&:to_h)
       )
@@ -91,12 +97,16 @@ module Mcp
       AuditLog.page_for(pot, before: before)
     end
 
-    def add_expense(pot_id:, description:, amount_cents:, paid_by_id: nil, participant_ids: nil, participant_group_ids: nil, spent_on: nil)
+    def add_expense(pot_id:, description:, amount_cents:, paid_by_id: nil, participant_ids: nil, participant_group_ids: nil, unallocated: false, spent_on: nil)
       pot = find_pot(pot_id)
       cents!(amount_cents)
       paid_by_id ||= pot.participants.find { |p| p.user_id == @user.id }&.id
       raise Error, "paid_by_id is required: you have no person in this pot." unless paid_by_id
-      participant_ids = pot.participants.map(&:id) if participant_ids.blank? && participant_group_ids.blank?
+      if unallocated
+        raise Error, "unallocated expenses cannot have participant_ids or participant_group_ids." if participant_ids.present? || participant_group_ids.present?
+      elsif participant_ids.blank? && participant_group_ids.blank?
+        participant_ids = pot.participants.map(&:id)
+      end
 
       expense = pot.expenses.new(description: description, amount_cents: amount_cents, paid_by_id: paid_by_id,
                                  spent_on: parse_date(spent_on))
@@ -139,7 +149,8 @@ module Mcp
       e.as_json(only: %i[id description amount_cents spent_on paid_by_id])
        .merge(participant_ids: e.shares.filter_map(&:participant_id),
               participant_group_ids: e.shares.filter_map(&:participant_group_id),
-              splits: e.split_amounts(order).map { |pid, cents| { participant_id: pid, amount_cents: cents } })
+              splits: e.split_amounts(order).map { |pid, cents| { participant_id: pid, amount_cents: cents } },
+              unallocated: e.unallocated?(order))
     end
 
     def cents!(value)

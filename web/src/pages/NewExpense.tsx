@@ -66,7 +66,6 @@ function Form({ group, meId, expense }: { group: Group; meId: number; expense?: 
     setError('')
     const cents = parseCents(amount)
     if (!cents) return setError('Enter a valid amount')
-    if (splitWith.length === 0 && viaGroup.size === 0) return setError('Pick at least one person or group to split with')
     // Amounts are computed by the server from who is in the groups at the time, so balances follow group edits.
     add.mutate({
       description,
@@ -106,6 +105,7 @@ function Form({ group, meId, expense }: { group: Group; meId: number; expense?: 
         </div>
         <section className="card" style={{ minWidth: 0 }}>
           <h2><Users size={14} /> Split equally between</h2>
+          {splitWith.length === 0 && viaGroup.size === 0 && <p className="muted">Nobody picked: saved as not allocated, left out of the balances.</p>}
           <div className="checks">
             {shortcuts.map((g) => (
               <label key={`g${g.id}`} className="check">

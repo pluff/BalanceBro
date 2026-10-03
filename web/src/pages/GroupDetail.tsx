@@ -103,8 +103,8 @@ export default function GroupDetail() {
                     const share = new Map(e.splits.map((x) => [x.participant_id, x.amount_cents]))
                     const payer = person(e.paid_by_id)
                     return (
-                      <tr key={it.key}>
-                        <td className="what">{cell(`/pots/${id}/expenses/${e.id}/edit`, <span className="ellipsis">{e.description} <small>{e.spent_on}</small></span>)}</td>
+                      <tr key={it.key} className={e.unallocated ? 'unallocated' : undefined}>
+                        <td className="what">{cell(`/pots/${id}/expenses/${e.id}/edit`, <span className="ellipsis">{e.description} <small>{e.spent_on}</small>{e.unallocated && <small className="badge-warn"> · not allocated</small>}</span>)}</td>
                         <td className="num"><b>{plain(e.amount_cents)}</b></td>
                         <td><span className="row start"><Avatar person={payer} size={18} /><span className="ellipsis">{payer.name}</span></span></td>
                         {people.map((p) => (
@@ -143,6 +143,7 @@ export default function GroupDetail() {
                   <span className="meta">
                     <Avatar person={person(e.paid_by_id)} size={20} /> {person(e.paid_by_id).name}
                     <ArrowRight size={12} />
+                    {e.unallocated && <small className="badge-warn">not allocated</small>}
                     <span className="avatars">
                       {e.splits.map((s) => <Avatar key={s.participant_id} person={person(s.participant_id)} size={20} />)}
                     </span>

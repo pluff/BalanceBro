@@ -137,6 +137,10 @@ button.icon { padding: 8px; width: 36px; height: 36px; }
 button.danger { color: var(--neg); }
 .error { color: var(--neg); background: color-mix(in srgb, var(--neg) 12%, transparent); padding: 10px 12px; border-radius: 10px; font-size: .9rem; }
 
+.warning { display: flex; gap: 8px; align-items: flex-start; color: var(--neg); background: color-mix(in srgb, var(--neg) 18%, transparent); border: 1px solid var(--neg); padding: 10px 12px; border-radius: 10px; font-size: .9rem; font-weight: 600; margin: 0 0 12px; }
+.warning svg { flex: none; margin-top: 2px; }
+.badge-warn { color: var(--neg); font-weight: 600; }
+
 .field { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; color: var(--muted); }
 .check { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); cursor: pointer; color: var(--text); }
 .check:has(input:checked) { border-color: var(--gold); background: var(--gold-soft); }
@@ -230,6 +234,8 @@ button.danger { color: var(--neg); }
 .ledger td.what a.cell:hover { background: var(--gold-soft); color: var(--gold-strong); }
 .ledger td .row.start { flex-wrap: nowrap; min-width: 0; }
 .ledger tbody tr:hover { background: var(--surface-2); }
+.ledger tr.unallocated td { background: color-mix(in srgb, var(--neg) 14%, transparent); }
+.ledger tbody tr.unallocated:hover td { background: color-mix(in srgb, var(--neg) 22%, transparent); }
 .ledger tr.sum td { font-weight: 700; background: var(--surface-2); }
 .ledger tr.sum:last-child td { border-bottom: 2px solid var(--line); }
 @media (min-width: 720px) {
