@@ -9,7 +9,8 @@ module Mcp
 
       Workflow: list_pots to find the pot id, get_pot to read people, expenses, paybacks and balances (and to learn the
       participant ids), then add_expense or add_payback to record something.
-      - An expense is money spent: one person paid and several share it equally. A payback is money handed from one person
+      - An expense is money spent: one person paid and several share it equally. If nobody shares it yet, add it with
+        unallocated: true; it is flagged and left out of balances until people are assigned in the app. A payback is money handed from one person
         to another to settle up; never record a payback as an expense.
       - Amounts are integer cents of the pot's currency (12.50 => 1250). Participants are people in the pot and may have no
         BalanceBro account; match the names the user says to get_pot's participants.
