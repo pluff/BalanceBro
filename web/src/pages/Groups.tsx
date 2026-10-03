@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronRight, PiggyBank, Plus, RotateCcw, Trash2, Users } from 'lucide-react'
 import { api, type DeletedGroup, type Group } from '../lib/api'
 import { CURRENCIES } from '../lib/money'
-import { Loading, PageHead } from '../components/Layout'
+import { Loading } from '../components/Layout'
 
 export default function Groups() {
   const qc = useQueryClient()
@@ -34,7 +34,6 @@ export default function Groups() {
   if (!groups) return <Loading />
   return (
     <div className="stack">
-      <PageHead title="MoneyPots" />
       <form className="card row" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
         <input placeholder="New MoneyPot" value={name} onChange={(e) => setName(e.target.value)} required />
         <select aria-label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>

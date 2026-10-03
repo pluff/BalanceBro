@@ -13,7 +13,7 @@ export function Layout() {
     <div className="app">
       <header className="topbar">
         <div className="topbar-in">
-          <Link to="/" className="brand"><Wallet size={22} /> BalanceBro</Link>
+          <Link to="/" className="brand"><Wallet size={22} /> Pots</Link>
           {potId && (
             <nav className="crumbs" aria-label="Breadcrumb">
               <span aria-hidden="true">/</span>
