@@ -60,7 +60,7 @@ export default function GroupDetail() {
                 <thead>
                   <tr>
                     <th>What</th>
-                    <th className="num">How much</th>
+                    <th className="num">Amount</th>
                     <th>Who paid</th>
                     {people.map((p) => (
                       <th key={p.id} className="num"><Link to={`/pots/${id}/people/${p.id}`} className="person" title={p.name}><Avatar person={p} size={18} />{p.short_name}</Link></th>

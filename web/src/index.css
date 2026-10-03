@@ -222,15 +222,16 @@ button.danger { color: var(--neg); }
 .only-desktop { display: none; }
 .tablewrap { overflow-x: auto; margin: 0 -14px -14px; }
 .ledger { width: 100%; border-collapse: collapse; font-size: .82rem; }
-.ledger th, .ledger td { padding: 4px 8px; line-height: 1.25; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.ledger th, .ledger td { padding: 1px 4px; line-height: 1.15; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
 .ledger th { position: sticky; top: 0; background: var(--surface); color: var(--muted); font-weight: 600; font-size: .75rem; white-space: nowrap; }
+.ledger th, .ledger th.num { text-align: center; }
 .ledger small { font-size: .7rem; }
-.ledger th .person { color: inherit; justify-content: flex-end; gap: 6px; max-width: 120px; }
+.ledger th .person { color: inherit; justify-content: center; gap: 3px; max-width: 120px; }
 .ledger .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ledger td:first-child { max-width: 320px; }
 .ledger td:first-child > * { display: block; }
 .ledger td.what { padding: 0; }
-.ledger td.what .cell { display: block; padding: 4px 8px; color: inherit; }
+.ledger td.what .cell { display: block; padding: 1px 4px; color: inherit; }
 .ledger td.what a.cell:hover { background: var(--gold-soft); color: var(--gold-strong); }
 .ledger td .row.start { flex-wrap: nowrap; min-width: 0; }
 .ledger tbody tr:hover { background: var(--surface-2); }
