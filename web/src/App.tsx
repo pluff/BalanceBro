@@ -8,6 +8,7 @@ import NewExpense from './pages/NewExpense'
 import PotBalance from './pages/PotBalance'
 import PersonHistory from './pages/PersonHistory'
 import NewSettlement from './pages/NewSettlement'
+import AuditLogs from './pages/AuditLogs'
 import Join from './pages/Join'
 import { Layout, PotLayout } from './components/Layout'
 
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="balance" element={<PotBalance />} />
           <Route path="people/:pid" element={<PersonHistory />} />
           <Route path="settings" element={<PotSettings />} />
+          <Route path="audit-logs" element={<AuditLogs />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" />} />

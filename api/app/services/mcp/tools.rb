@@ -18,6 +18,14 @@ module Mcp
                      "Positive balance = the pot owes them; negative = they owe the pot.",
         inputSchema: { type: "object", properties: { pot_id: POT_ID }, required: %w[pot_id] },
         annotations: { readOnlyHint: true } },
+      { name: "get_audit_logs",
+        description: "The pot's audit trail (who added, edited or deleted what, and when), newest first. Owner only. " \
+                     "Returns up to 50 entries; pass the returned next_before as `before` for older ones.",
+        inputSchema: { type: "object", required: %w[pot_id], properties: {
+          pot_id: POT_ID,
+          before: { type: "integer", description: "Log id cursor: only entries older than this. Use next_before from the previous page." }
+        } },
+        annotations: { readOnlyHint: true } },
       { name: "add_expense",
         description: "Add an expense that one person paid and several share equally. Call get_pot first to learn the person ids.",
         inputSchema: { type: "object", required: %w[pot_id description amount_cents], properties: {
@@ -72,6 +80,12 @@ module Mcp
         balances: balances.balances.map { |id, c| { participant_id: id, amount_cents: c } },
         suggested_transfers: balances.transfers.map(&:to_h)
       )
+    end
+
+    def get_audit_logs(pot_id:, before: nil)
+      pot = find_pot(pot_id)
+      raise Error, "Only the pot's owner can view the audit logs." unless pot.owned_by?(@user)
+      AuditLog.page_for(pot, before: before)
     end
 
     def add_expense(pot_id:, description:, amount_cents:, paid_by_id: nil, participant_ids: nil, participant_group_ids: nil, spent_on: nil)

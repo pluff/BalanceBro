@@ -3,6 +3,7 @@ class Group < ApplicationRecord
   # Order matters: money rows reference participants, so they are destroyed first.
   has_many :expenses, dependent: :destroy
   has_many :settlements, dependent: :destroy
+  has_many :audit_logs
   has_many :participant_groups, -> { order(:name) }, dependent: :destroy
   has_many :participants, -> { order(:position, :id) }, dependent: :destroy
   has_many :memberships, class_name: "GroupMembership", dependent: :destroy

@@ -5,5 +5,18 @@ class AuditLog < ApplicationRecord
 
   validates :group_id, :action, presence: true
 
+  PER_PAGE = 50
+  FIELDS = %i[id actor_id actor_name action subject_type subject_id details ip created_at].freeze
+
+  # One page of a pot's log, newest first. `before` is a log id (cursor); `next_before` is nil on the last page.
+  def self.page_for(group, before: nil, per: PER_PAGE)
+    scope = where(group_id: group.id).order(id: :desc)
+    scope = scope.where(id: ...before.to_i) if before.present?
+    rows = scope.limit(per + 1).to_a
+    more = rows.size > per
+    rows = rows.first(per)
+    { logs: rows.as_json(only: FIELDS), next_before: (rows.last.id if more) }
+  end
+
   def readonly? = !new_record?
 end

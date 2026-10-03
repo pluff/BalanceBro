@@ -62,6 +62,18 @@ export type Expense = {
   splits: { participant_id: number; amount_cents: number }[]
 }
 
+export type AuditLog = {
+  id: number
+  actor_id: number | null
+  actor_name: string | null
+  action: string
+  subject_type: string | null
+  subject_id: number | null
+  details: Record<string, unknown>
+  ip: string | null
+  created_at: string
+}
+
 export type Settlement = {
   id: number
   from_participant_id: number

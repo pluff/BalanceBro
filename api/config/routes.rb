@@ -28,6 +28,7 @@ Rails.application.routes.draw do
         resources :participant_groups, only: %i[create update destroy]
         resources :expenses, only: %i[index create update destroy]
         resources :settlements, only: %i[index create update destroy]
+        resources :audit_logs, only: :index
       end
     end
   end
