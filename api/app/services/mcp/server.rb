@@ -3,6 +3,20 @@ module Mcp
   class Server
     PROTOCOL_VERSIONS = %w[2025-06-18 2025-03-26 2024-11-05].freeze
 
+    INSTRUCTIONS = <<~TEXT.freeze
+      BalanceBro tracks shared expenses between people. Costs live in MoneyPots (a trip, a flat, a dinner group). Use these
+      tools whenever the user talks about their pots, who owes whom, splitting a cost, or paying someone back.
+
+      Workflow: list_pots to find the pot id, get_pot to read people, expenses, paybacks and balances (and to learn the
+      participant ids), then add_expense or add_payback to record something.
+      - An expense is money spent: one person paid and several share it equally. A payback is money handed from one person
+        to another to settle up; never record a payback as an expense.
+      - Amounts are integer cents of the pot's currency (12.50 => 1250). Participants are people in the pot and may have no
+        BalanceBro account; match the names the user says to get_pot's participants.
+      - Writing tools change shared data that other members see. If the pot, amount, payer or who shares the cost is unclear, ask
+        the user first. After writing, tell the user exactly what was recorded.
+    TEXT
+
     def initialize(user, ip: nil)
       @user = user
       @tools = Tools.new(user, ip: ip)
@@ -31,7 +45,7 @@ module Mcp
       { protocolVersion: PROTOCOL_VERSIONS.include?(asked) ? asked : PROTOCOL_VERSIONS.first,
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: "balancebro", version: "1.0.0" },
-        instructions: "BalanceBro splits expenses between people in MoneyPots. Amounts are integer cents in the pot's currency." }
+        instructions: INSTRUCTIONS }
     end
 
     def call_tool(params)

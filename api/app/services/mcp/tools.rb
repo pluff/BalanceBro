@@ -4,51 +4,54 @@ module Mcp
   class Tools
     class Error < StandardError; end
 
-    POT_ID = { type: "integer", description: "Pot id from list_pots." }.freeze
-    CENTS = { type: "integer", minimum: 1, description: "Amount in cents of the pot's currency (12.50 => 1250)." }.freeze
+    POT_ID = { type: "integer", description: "MoneyPot id, from list_pots." }.freeze
+    CENTS = { type: "integer", minimum: 1, description: "Whole amount in cents of the pot's currency, e.g. 12.50 => 1250. Always positive." }.freeze
+    PERSON = "Participant id from get_pot (a person in the pot, not necessarily a BalanceBro user).".freeze
 
     DEFINITIONS = [
       { name: "list_pots",
-        description: "List the MoneyPots (shared expense groups) the user owns or has joined.",
+        description: "List the user's BalanceBro MoneyPots (shared expense groups for splitting costs with friends, trips, " \
+                     "households) with id, name, currency and whether the user owns it. Start here to find a pot id " \
+                     "when the user mentions a pot by name.",
         inputSchema: { type: "object", properties: {} },
-        annotations: { readOnlyHint: true } },
+        annotations: { title: "List MoneyPots", readOnlyHint: true } },
       { name: "get_pot",
-        description: "Everything in one pot: people, saved participant groups, all expenses (with the per-person split), " \
-                     "all paybacks, each person's net balance and the transfers that would settle everyone. " \
-                     "Positive balance = the pot owes them; negative = they owe the pot.",
+        description: "Read everything in one BalanceBro MoneyPot: people (participants), saved participant groups, every " \
+                     "expense (who paid, total, and each person's share), every payback, each person's net balance and the " \
+                     "minimal transfers that would settle everyone. Use it to answer who owes whom, what was spent, or to " \
+                     "look up participant ids before adding records. Balances: positive = the pot owes that person, " \
+                     "negative = they owe the pot. All amounts are integer cents.",
         inputSchema: { type: "object", properties: { pot_id: POT_ID }, required: %w[pot_id] },
-        annotations: { readOnlyHint: true } },
-      { name: "get_audit_logs",
-        description: "The pot's audit trail (who added, edited or deleted what, and when), newest first. Owner only. " \
-                     "Returns up to 50 entries; pass the returned next_before as `before` for older ones.",
-        inputSchema: { type: "object", required: %w[pot_id], properties: {
-          pot_id: POT_ID,
-          before: { type: "integer", description: "Log id cursor: only entries older than this. Use next_before from the previous page." }
-        } },
-        annotations: { readOnlyHint: true } },
+        annotations: { title: "Get MoneyPot details", readOnlyHint: true } },
       { name: "add_expense",
-        description: "Add an expense that one person paid and several share equally. Call get_pot first to learn the person ids.",
+        description: "Record a new expense in a BalanceBro MoneyPot: one person paid, and the cost is split equally between " \
+                     "the chosen people. Use for \"I paid 40 for dinner\" or \"Anna bought groceries for the three of us\". " \
+                     "Call get_pot first to get participant ids. This changes data: confirm ambiguous details (amount, " \
+                     "who shared it) with the user before calling.",
         inputSchema: { type: "object", required: %w[pot_id description amount_cents], properties: {
           pot_id: POT_ID,
-          description: { type: "string" },
+          description: { type: "string", description: "What the money was spent on, e.g. \"Dinner\"." },
           amount_cents: CENTS,
-          paid_by_id: { type: "integer", description: "Person who paid. Defaults to the user's own person in the pot." },
-          participant_ids: { type: "array", items: { type: "integer" }, description: "People sharing it. Defaults to everyone in the pot unless participant_group_ids is given." },
-          participant_group_ids: { type: "array", items: { type: "integer" }, description: "Saved participant groups whose members share it." },
+          paid_by_id: { type: "integer", description: "#{PERSON} Who paid. Defaults to the user's own person in the pot." },
+          participant_ids: { type: "array", items: { type: "integer" }, description: "People who share the cost. Defaults to everyone in the pot unless participant_group_ids is given." },
+          participant_group_ids: { type: "array", items: { type: "integer" }, description: "Saved participant groups (from get_pot) whose current members share the cost." },
           spent_on: { type: "string", format: "date", description: "YYYY-MM-DD. Defaults to today." }
         } },
-        annotations: { readOnlyHint: false, destructiveHint: false } },
+        annotations: { title: "Add expense", readOnlyHint: false, destructiveHint: false } },
       { name: "add_payback",
-        description: "Record that one person paid money back to another (a settlement).",
+        description: "Record that one person paid money back to another in a BalanceBro MoneyPot (a settlement). Use for " \
+                     "\"Bob gave me 20 back\" or \"I paid Anna what I owed\". It reduces what they owe each other; it is " \
+                     "not a new expense. Call get_pot first to get participant ids. This changes data: confirm the " \
+                     "direction and amount with the user if unclear.",
         inputSchema: { type: "object", required: %w[pot_id from_participant_id to_participant_id amount_cents], properties: {
           pot_id: POT_ID,
-          from_participant_id: { type: "integer", description: "Person who paid the money." },
-          to_participant_id: { type: "integer", description: "Person who received it." },
+          from_participant_id: { type: "integer", description: "#{PERSON} The person who paid the money." },
+          to_participant_id: { type: "integer", description: "#{PERSON} The person who received it. Must differ from the payer." },
           amount_cents: CENTS,
           settled_on: { type: "string", format: "date", description: "YYYY-MM-DD. Defaults to today." },
-          description: { type: "string" }
+          description: { type: "string", description: "Optional note, e.g. \"cash\"." }
         } },
-        annotations: { readOnlyHint: false, destructiveHint: false } }
+        annotations: { title: "Add payback", readOnlyHint: false, destructiveHint: false } }
     ].freeze
 
     def initialize(user, ip: nil)
