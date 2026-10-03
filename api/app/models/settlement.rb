@@ -1,4 +1,6 @@
 class Settlement < ApplicationRecord
+  include SoftDeletable
+
   belongs_to :group
   belongs_to :from_participant, class_name: "Participant", inverse_of: :sent_settlements
   belongs_to :to_participant, class_name: "Participant", inverse_of: :received_settlements

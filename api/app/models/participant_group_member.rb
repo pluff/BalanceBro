@@ -11,7 +11,7 @@ class ParticipantGroupMember < ApplicationRecord
 
   def keep_used_group_nonempty
     return unless participant_group.expense_shares.exists?
-    return if participant_group.members.where.not(id: id).exists?
+    return if participant_group.participants.where.not(id: participant_id).exists?
     errors.add(:base, "last member of a group used in expenses")
     throw :abort
   end

@@ -82,6 +82,10 @@ export function describeLog(log: AuditLog, group: Group, all: AuditLog[]): Audit
       notes.push('Existing amounts were only relabelled, not converted')
       return { verb: p ? `changed the currency from ${p[0]} to ${p[1]}` : 'changed the currency', notes }
     }
+    case 'group.delete':
+      return { verb: `deleted the MoneyPot ${q(s(d.name))}`, notes: ['Moved to “Deleted”; it can be restored'] }
+    case 'group.restore':
+      return { verb: `restored the MoneyPot ${q(s(d.name))}`, notes }
     case 'share.enable':
       return { verb: d.already_enabled ? 'viewed the existing share link' : 'created a share link', notes }
     case 'share.disable':

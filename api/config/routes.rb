@@ -19,7 +19,10 @@ Rails.application.routes.draw do
       get    "join/:token", to: "joins#show"
       post   "join",        to: "joins#create"
 
-      resources :groups, only: %i[index create show update] do
+      resources :groups, only: %i[index create show update destroy] do
+        get :deleted, on: :collection
+        post :restore, on: :member
+        delete :purge, on: :member
         resource :share, only: %i[create destroy]
         get :balances, on: :member
         resources :participants, only: %i[create update destroy] do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "paid_by_id", null: false
+    t.datetime "deleted_at"
     t.index ["group_id"], name: "index_expenses_on_group_id"
     t.index ["paid_by_id"], name: "index_expenses_on_paid_by_id"
   end
@@ -70,6 +71,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
     t.datetime "updated_at", null: false
     t.bigint "owner_id", null: false
     t.string "share_token"
+    t.datetime "deleted_at"
+    t.index ["owner_id", "deleted_at"], name: "index_groups_on_owner_id_and_deleted_at"
     t.index ["owner_id"], name: "index_groups_on_owner_id"
     t.index ["share_token"], name: "index_groups_on_share_token", unique: true
   end
@@ -127,7 +130,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index "group_id, lower((name)::text)", name: "index_participant_groups_on_group_and_lower_name", unique: true
+    t.datetime "deleted_at"
+    t.index "group_id, lower((name)::text)", name: "index_participant_groups_on_group_and_lower_name", unique: true, where: "(deleted_at IS NULL)"
     t.index ["group_id"], name: "index_participant_groups_on_group_id"
   end
 
@@ -139,7 +143,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
     t.datetime "updated_at", null: false
     t.integer "position", default: 0, null: false
     t.string "short_name", null: false
-    t.index "group_id, lower((name)::text)", name: "index_participants_on_group_and_lower_name", unique: true
+    t.datetime "deleted_at"
+    t.index "group_id, lower((name)::text)", name: "index_participants_on_group_and_lower_name", unique: true, where: "(deleted_at IS NULL)"
     t.index ["group_id", "position"], name: "index_participants_on_group_id_and_position"
     t.index ["group_id"], name: "index_participants_on_group_id"
     t.index ["user_id"], name: "index_participants_on_user_id"
@@ -163,6 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_160000) do
     t.bigint "from_participant_id", null: false
     t.bigint "to_participant_id", null: false
     t.string "description"
+    t.datetime "deleted_at"
     t.index ["from_participant_id"], name: "index_settlements_on_from_participant_id"
     t.index ["group_id"], name: "index_settlements_on_group_id"
     t.index ["to_participant_id"], name: "index_settlements_on_to_participant_id"

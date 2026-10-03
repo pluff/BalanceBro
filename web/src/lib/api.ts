@@ -45,6 +45,7 @@ export type Group = {
   participants?: Participant[]
   participant_groups?: ParticipantGroup[]
 }
+export type DeletedGroup = { id: number; name: string; currency: string; deleted_at: string }
 export type Balances = {
   balances: { participant_id: number; amount_cents: number }[]
   transfers: { from_participant_id: number; to_participant_id: number; amount_cents: number }[]

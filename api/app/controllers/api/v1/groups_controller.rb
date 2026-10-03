@@ -1,8 +1,9 @@
 module Api
   module V1
     class GroupsController < ApplicationController
-      before_action :set_pot, only: %i[show update balances]
-      before_action :require_owner!, only: :update
+      before_action :set_pot, only: %i[show update destroy balances]
+      before_action :set_deleted_pot, only: %i[restore purge]
+      before_action :require_owner!, only: %i[update destroy]
 
       def index
         render json: Group.accessible_by(current_user).order(:name).map { |g| json(g) }
@@ -33,6 +34,31 @@ module Api
         render json: json(@group)
       end
 
+      # Soft delete (owner only): the pot moves to "deleted" with all its data.
+      def destroy
+        @group.destroy!
+        audit("group.delete", @group, { name: @group.name })
+        head :no_content
+      end
+
+      # The owner's deleted pots, newest deletion first.
+      def deleted
+        render json: Group.deleted.where(owner_id: current_user.id).order(deleted_at: :desc)
+                          .map { |g| g.as_json(only: %i[id name currency deleted_at]) }
+      end
+
+      def restore
+        @group.restore!
+        audit("group.restore", @group, { name: @group.name })
+        render json: json(@group)
+      end
+
+      # Permanent delete of a deleted pot and everything in it (people, expenses, paybacks, audit logs).
+      def purge
+        @group.purge!
+        head :no_content
+      end
+
       def balances
         calc = GroupBalances.new(@group)
         render json: { balances: calc.balances.map { |id, c| { participant_id: id, amount_cents: c } },
@@ -42,6 +68,9 @@ module Api
       private
 
       def set_pot = @group = Group.accessible_by(current_user).find(params[:id])
+
+      # Only the owner sees (and can restore or purge) a deleted pot.
+      def set_deleted_pot = @group = Group.deleted.find_by!(id: params[:id], owner_id: current_user.id)
 
       # The share link is a secret: only the owner ever sees it.
       def json(g)

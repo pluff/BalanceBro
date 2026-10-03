@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, Check, Copy, Link2, Link2Off, Pencil, Plus, Trash2, UserPlus, Users, Wallet, X } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CURRENCIES } from '../lib/money'
@@ -19,6 +19,8 @@ const errMessage = (e: unknown, inUse = 'Could not save') => {
 export default function PotSettings() {
   const { id } = useParams()
   const qc = useQueryClient()
+  const navigate = useNavigate()
+  const [confirmPot, setConfirmPot] = useState(false)
   const [newName, setNewName] = useState('')
   const [newShort, setNewShort] = useState('')
   const [editing, setEditing] = useState<{ id: number; name: string; short_name: string } | null>(null)
@@ -46,6 +48,15 @@ export default function PotSettings() {
     mutationFn: (changes: { name?: string; currency?: string }) => api(`/groups/${id}`, { method: 'PATCH', json: changes }),
     onSuccess: () => { setPotName(null); setError(''); refreshPot() },
     onError: () => setError('Could not save'),
+  })
+  const deletePot = useMutation({
+    mutationFn: () => api(`/groups/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['groups'] })
+      qc.invalidateQueries({ queryKey: ['groups', 'deleted'] })
+      navigate('/')
+    },
+    onError: () => { setConfirmPot(false); setError('Could not delete the MoneyPot') },
   })
   const enableShare = useMutation({
     mutationFn: () => api(`/groups/${id}/share`, { method: 'POST' }),
@@ -144,6 +155,15 @@ export default function PotSettings() {
                 </select>
               </div>
               <small>Changing the currency only relabels existing amounts, it does not convert them.</small>
+              {confirmPot ? (
+                <span className="row">
+                  <button type="button" className="danger" disabled={deletePot.isPending} onClick={() => deletePot.mutate()}>Really delete?</button>
+                  <button type="button" onClick={() => setConfirmPot(false)}>Cancel</button>
+                </span>
+              ) : (
+                <button type="button" className="danger" onClick={() => setConfirmPot(true)}><Trash2 size={16} /> Delete MoneyPot</button>
+              )}
+              <small>Deleted MoneyPots move to “Deleted” on the MoneyPots page, where you can restore or erase them for good.</small>
             </section>
           )}
 

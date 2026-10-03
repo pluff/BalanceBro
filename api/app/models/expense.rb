@@ -1,7 +1,9 @@
 class Expense < ApplicationRecord
+  include SoftDeletable
+
   belongs_to :group
   belongs_to :paid_by, class_name: "Participant", inverse_of: :paid_expenses
-  has_many :shares, class_name: "ExpenseShare", dependent: :destroy
+  has_many :shares, class_name: "ExpenseShare" # kept with a deleted expense; removed by Group#purge!
 
   validates :description, presence: true
   validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }
