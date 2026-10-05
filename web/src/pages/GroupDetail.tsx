@@ -7,6 +7,8 @@ import { money, plain } from '../lib/money'
 import Avatar from '../components/Avatar'
 import { Loading } from '../components/Layout'
 
+const UNALLOCATED_HINT = 'Nobody shares this expense yet, so it is left out of the balances.'
+
 export default function GroupDetail() {
   const { id } = useParams()
   const { data: group } = useQuery({ queryKey: ['group', id], queryFn: () => api<Group>(`/groups/${id}`) })
@@ -56,7 +58,7 @@ export default function GroupDetail() {
                     ))}
                   </tr>
                   <tr className="sum">
-                    <td>Spent in total</td>
+                    <td>Spent</td>
                     <td className="num">{plain(total)}</td>
                     <td />
                     {people.map((p) => (
@@ -79,7 +81,7 @@ export default function GroupDetail() {
                       const { from_participant_id: from, to_participant_id: to, amount_cents } = it.s
                       return (
                         <tr key={it.key} className="payback">
-                          <td className="what">{cell(`/pots/${id}/settlements/${it.s.id}/edit`, <><span className="ellipsis"><HandCoins size={13} style={{ verticalAlign: '-2px' }} /> {it.s.description || 'Payback'} <small>{it.date}</small></span></>)}</td>
+                          <td className="what">{cell(`/pots/${id}/settlements/${it.s.id}/edit`, <><span className="ellipsis"><HandCoins size={13} style={{ verticalAlign: '-2px' }} /> {it.s.description || 'Payback'}</span></>)}</td>
                           <td className="num"><b>{plain(amount_cents)}</b></td>
                           <td><span className="row start"><Avatar person={person(from)} size={18} /><span className="ellipsis">{person(from).name}</span></span></td>
                           {people.map((p) => (
@@ -92,9 +94,9 @@ export default function GroupDetail() {
                     const share = new Map(e.splits.map((x) => [x.participant_id, x.amount_cents]))
                     const payer = person(e.paid_by_id)
                     return (
-                      <tr key={it.key} className={e.unallocated ? 'unallocated' : undefined}>
-                        <td className="what">{cell(`/pots/${id}/expenses/${e.id}/edit`, <span className="ellipsis">{e.description} <small>{e.spent_on}</small>{e.unallocated && <small className="badge-warn"> · not allocated</small>}</span>)}</td>
-                        <td className="num"><b>{plain(e.amount_cents)}</b></td>
+                      <tr key={it.key} className={e.unallocated ? 'unallocated' : undefined} title={e.unallocated ? UNALLOCATED_HINT : undefined}>
+                        <td className="what">{cell(`/pots/${id}/expenses/${e.id}/edit`, <span className="ellipsis">{e.description}</span>)}</td>
+                        <td className="num"><b className={e.unallocated ? 'neg' : undefined}>{plain(e.amount_cents)}</b></td>
                         <td><span className="row start"><Avatar person={payer} size={18} /><span className="ellipsis">{payer.name}</span></span></td>
                         {people.map((p) => (
                           <td key={p.id} className="num">{share.has(p.id) ? plain(share.get(p.id)!) : ''}</td>
@@ -132,11 +134,18 @@ export default function GroupDetail() {
                   <span className="meta">
                     <Avatar person={person(e.paid_by_id)} size={20} /> {person(e.paid_by_id).name}
                     <ArrowRight size={12} />
-                    {e.unallocated && <small className="badge-warn">not allocated</small>}
-                    <span className="avatars">
-                      {e.splits.map((s) => <Avatar key={s.participant_id} person={person(s.participant_id)} size={20} />)}
-                    </span>
-                    <span className="splitnames ellipsis">{e.splits.map((s) => person(s.participant_id).name).join(', ')}</span>
+                    {e.unallocated ? (
+                      <span className="avatars unallocated-avatars" title={UNALLOCATED_HINT}>
+                        {[0, 1, 2].map((i) => <span key={i} className="unknown-avatar">?</span>)}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="avatars">
+                          {e.splits.map((s) => <Avatar key={s.participant_id} person={person(s.participant_id)} size={20} />)}
+                        </span>
+                        <span className="splitnames ellipsis">{e.splits.map((s) => person(s.participant_id).name).join(', ')}</span>
+                      </>
+                    )}
                   </span>
                 </li>
               )
