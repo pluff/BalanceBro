@@ -147,6 +147,8 @@ a.link.icon { display: inline-flex; align-items: center; justify-content: center
 .faq ol { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .faq code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-size: .85em; word-break: break-all; }
 button.danger { color: var(--neg); }
+.danger-zone { border-color: color-mix(in srgb, var(--neg) 40%, transparent); }
+.danger-zone h2 { color: var(--neg); }
 .error { color: var(--neg); background: color-mix(in srgb, var(--neg) 12%, transparent); padding: 10px 12px; border-radius: 10px; font-size: .9rem; }
 
 .warning { display: flex; gap: 8px; align-items: flex-start; color: var(--neg); background: color-mix(in srgb, var(--neg) 18%, transparent); border: 1px solid var(--neg); padding: 10px 12px; border-radius: 10px; font-size: .9rem; font-weight: 600; margin: 0 0 12px; }

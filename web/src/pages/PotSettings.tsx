@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Check, Copy, Link2, Link2Off, Pencil, Plus, Trash2, UserPlus, Users, Wallet, X } from 'lucide-react'
+import { AlertTriangle, ArrowDown, ArrowUp, Check, Copy, Link2, Link2Off, Pencil, Plus, Trash2, UserPlus, Users, Wallet, X } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CURRENCIES } from '../lib/money'
 import Avatar from '../components/Avatar'
@@ -144,7 +144,7 @@ export default function PotSettings() {
                   </span>
                 ) : (
                   <form className="row grow" onSubmit={(e) => { e.preventDefault(); updatePot.mutate({ name: potName }) }}>
-                    <input autoFocus value={potName} onChange={(e) => setPotName(e.target.value)} required />
+                    <input autoFocus maxLength={255} value={potName} onChange={(e) => setPotName(e.target.value)} required />
                     <button type="submit" className="primary icon" aria-label="Save" disabled={updatePot.isPending}><Check size={18} /></button>
                     <button type="button" className="icon" aria-label="Cancel" onClick={() => setPotName(null)}><X size={18} /></button>
                   </form>
@@ -154,15 +154,6 @@ export default function PotSettings() {
                 </select>
               </div>
               <small>Changing the currency only relabels existing amounts, it does not convert them.</small>
-              {confirmPot ? (
-                <span className="row">
-                  <button type="button" className="danger" disabled={deletePot.isPending} onClick={() => deletePot.mutate()}>Really delete?</button>
-                  <button type="button" onClick={() => setConfirmPot(false)}>Cancel</button>
-                </span>
-              ) : (
-                <button type="button" className="danger" onClick={() => setConfirmPot(true)}><Trash2 size={16} /> Delete MoneyPot</button>
-              )}
-              <small>Deleted MoneyPots move to “Deleted” on the MoneyPots page, where you can restore or erase them for good.</small>
             </section>
           )}
 
@@ -227,9 +218,9 @@ export default function PotSettings() {
         </section>
 
         <section className="card stack">
-          <h2><Users size={14} /> Groups of people</h2>
+          <h2><Users size={14} /> Group shortcuts</h2>
           <small>Shortcuts for the “Split equally between” list when adding an expense.</small>
-          {groups.length === 0 && !draft && <p className="muted">No groups yet.</p>}
+          {groups.length === 0 && !draft && <p className="muted">No shortcuts yet.</p>}
           <ul className="list">
             {groups.map((g) => (
               <li key={g.id} className="row">
@@ -254,7 +245,7 @@ export default function PotSettings() {
 
           {draft ? (
             <form className="stack" onSubmit={(e) => { e.preventDefault(); saveGroup.mutate(draft) }}>
-              <input autoFocus placeholder="Group name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
+              <input autoFocus placeholder="Shortcut name" maxLength={50} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
               <div className="checks">
                 {people.map((p) => (
                   <label key={p.id} className="check">
@@ -263,15 +254,30 @@ export default function PotSettings() {
                 ))}
               </div>
               <span className="row">
-                <button type="submit" className="primary" disabled={draft.ids.length === 0 || saveGroup.isPending}><Check size={16} /> Save group</button>
+                <button type="submit" className="primary" disabled={draft.ids.length === 0 || saveGroup.isPending}><Check size={16} /> Save shortcut</button>
                 <button type="button" onClick={() => setDraft(null)}>Cancel</button>
               </span>
             </form>
           ) : (
-            <button type="button" onClick={() => setDraft({ id: null, name: '', ids: [] })}><Plus size={16} /> New group</button>
+            <button type="button" onClick={() => setDraft({ id: null, name: '', ids: [] })}><Plus size={16} /> New shortcut</button>
           )}
         </section>
       </div>
+
+      {canManage && (
+        <section className="card stack danger-zone" style={{ marginTop: 16 }}>
+          <h2><AlertTriangle size={14} /> Danger zone</h2>
+          {confirmPot ? (
+            <span className="row">
+              <button type="button" className="danger" disabled={deletePot.isPending} onClick={() => deletePot.mutate()}>Really delete?</button>
+              <button type="button" onClick={() => setConfirmPot(false)}>Cancel</button>
+            </span>
+          ) : (
+            <button type="button" className="danger" onClick={() => setConfirmPot(true)}><Trash2 size={16} /> Delete MoneyPot</button>
+          )}
+          <small>Deleted MoneyPots move to “Deleted” on the MoneyPots page, where you can restore or erase them for good.</small>
+        </section>
+      )}
     </>
   )
 }

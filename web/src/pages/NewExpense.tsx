@@ -86,7 +86,7 @@ function Form({ group, meId, expense }: { group: Group; meId: number; expense?: 
         <div className="card stack">
           <label className="field">
             <span className="row start"><Tag size={14} /> What for?</span>
-            <input value={description} onChange={(e) => setDescription(e.target.value)} required autoFocus />
+            <input value={description} maxLength={255} onChange={(e) => setDescription(e.target.value)} required autoFocus />
           </label>
           <label className="field">
             <span className="row start"><Wallet size={14} /> Amount ({group.currency})</span>

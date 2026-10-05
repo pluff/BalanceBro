@@ -5,7 +5,7 @@ class Expense < ApplicationRecord
   belongs_to :paid_by, class_name: "Participant", inverse_of: :paid_expenses
   has_many :shares, class_name: "ExpenseShare" # kept with a deleted expense; removed by Group#purge!
 
-  validates :description, presence: true
+  validates :description, presence: true, length: { maximum: 255 }
   validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }
   validate :shares_belong_to_group
 

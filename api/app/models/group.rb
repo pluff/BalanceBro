@@ -10,7 +10,7 @@ class Group < ApplicationRecord
   has_many :participants, -> { order(:position, :id) }
   has_many :memberships, class_name: "GroupMembership"
 
-  validates :name, presence: true
+  validates :name, presence: true, length: { maximum: 255 }
   # Two-decimal currencies only: amounts are stored and entered as cents.
   CURRENCIES = %w[EUR USD GBP CHF PLN CZK SEK NOK DKK CAD AUD UAH BYN].freeze
 

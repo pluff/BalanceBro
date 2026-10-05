@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronRight, PiggyBank, Plus, RotateCcw, Trash2, Users } from 'lucide-react'
+import { ChevronRight, Plus, RotateCcw, Trash2, Users, Wallet } from 'lucide-react'
 import { api, type DeletedGroup, type Group } from '../lib/api'
 import { CURRENCIES } from '../lib/money'
 import { Loading } from '../components/Layout'
@@ -35,18 +35,18 @@ export default function Groups() {
   return (
     <div className="stack">
       <form className="card row" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
-        <input placeholder="New MoneyPot" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input placeholder="New MoneyPot" maxLength={255} value={name} onChange={(e) => setName(e.target.value)} required />
         <select aria-label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
           {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
         </select>
         <button type="submit" className="primary" aria-label="Add MoneyPot" disabled={create.isPending}><Plus size={18} /><span className="hide-sm"> Add</span></button>
       </form>
-      {groups.length === 0 && <div className="empty"><PiggyBank size={40} />No MoneyPots yet. Create the first one.</div>}
+      {groups.length === 0 && <div className="empty"><Wallet size={40} />No MoneyPots yet. Create the first one.</div>}
       <ul className="pots stack" style={{ display: 'grid' }}>
         {groups.map((g) => (
           <li key={g.id}>
             <Link to={`/pots/${g.id}`} className="card pot">
-              <span className="pot-ico"><PiggyBank size={22} /></span>
+              <span className="pot-ico"><Wallet size={22} /></span>
               <span className="grow">
                 <b className="ellipsis" style={{ display: 'block' }}>{g.name}</b>
                 <small>{g.currency}</small>
