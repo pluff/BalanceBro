@@ -83,8 +83,9 @@ svg { flex: none; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   font-size: .72rem; color: var(--muted);
 }
-.tab.on { color: var(--gold-strong); }
+.tab.on { background: color-mix(in srgb, var(--gold) 30%, transparent); color: var(--gold-strong); font-weight: 700; border-radius: 99px; height: calc(var(--nav-h) - 12px); margin: 6px 4px; }
 .tab.on svg { stroke-width: 2.4; }
+.fab.hide-phone { display: none; }
 
 /* ---------- primitives ---------- */
 .stack { display: flex; flex-direction: column; gap: 12px; padding: 0; margin: 0; list-style: none; }
@@ -199,7 +200,8 @@ button.danger { color: var(--neg); }
     position: static; border: 0; background: none; padding: 0; justify-content: flex-start; gap: 6px; margin-bottom: 16px;
   }
   .tab { flex: none; height: 38px; flex-direction: row; gap: 6px; padding: 0 14px; border-radius: 99px; font-size: .9rem; background: var(--surface); border: 1px solid var(--line); }
-  .tab.on { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+  .tab.on { background: var(--gold); border-color: var(--gold); color: var(--on-gold); font-weight: inherit; margin: 0; height: 38px; }
+  .fab.hide-phone { display: inline-flex; }
   .pots { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
   .cols.two { grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); }
   .cols.even { grid-template-columns: repeat(2, minmax(0, 1fr)); }

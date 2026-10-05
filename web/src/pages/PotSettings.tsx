@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, Copy, Link2, Link2Off, Pencil, Plus, Trash2,
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CURRENCIES } from '../lib/money'
 import Avatar from '../components/Avatar'
-import { Loading, PageHead } from '../components/Layout'
+import { Loading } from '../components/Layout'
 import { api, ApiError, type Group, type Participant, type ParticipantGroup } from '../lib/api'
 
 const errMessage = (e: unknown, inUse = 'Could not save') => {
@@ -130,7 +130,6 @@ export default function PotSettings() {
 
   return (
     <>
-      <PageHead title="Settings" back={`/pots/${id}`} />
       {error && <p className="error" style={{ marginBottom: 12 }}>{error}</p>}
       <div className="cols three">
         <div className="stack">

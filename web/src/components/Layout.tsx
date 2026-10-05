@@ -39,17 +39,18 @@ export function PotLayout() {
   )
   const { pathname } = useLocation()
   const showAdd = !/\/(expenses|settlements|people)\//.test(pathname)
+  const addOnPhone = pathname === `/pots/${id}` || pathname === `/pots/${id}/balance`
   return (
     <>
       <div className="tabrow">
       <nav className="tabs" aria-label="MoneyPot">
         {tab(`/pots/${id}`, 'History', <Receipt size={20} />, true)}
         {tab(`/pots/${id}/balance`, 'Balance', <Scale size={20} />)}
-        {tab(`/pots/${id}/settings`, 'Settings', <Settings size={20} />)}
         {group?.is_owner && tab(`/pots/${id}/audit-logs`, 'Audit', <ScrollText size={20} />)}
+        {tab(`/pots/${id}/settings`, 'Settings', <Settings size={20} />)}
       </nav>
       {showAdd && (
-        <Link to={`/pots/${id}/expenses/new`} className="fab" aria-label="Add expense or payback" title="Add expense or payback">
+        <Link to={`/pots/${id}/expenses/new`} className={`fab${addOnPhone ? '' : ' hide-phone'}`} aria-label="Add expense or payback" title="Add expense or payback">
           <Plus size={20} />Add
         </Link>
       )}

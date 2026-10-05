@@ -1,6 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { Loading, PageHead } from '../components/Layout'
+import { Loading } from '../components/Layout'
 import { api, type AuditLog, type Group } from '../lib/api'
 import { describeLog } from '../lib/auditText'
 
@@ -27,7 +27,6 @@ export default function AuditLogs() {
 
   return (
     <>
-      <PageHead title="Audit Logs" />
       <section className="card stack">
         {isPending && <Loading />}
         {isError && <p className="error">Could not load logs</p>}
