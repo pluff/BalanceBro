@@ -38,7 +38,7 @@ export default function AuditLogs() {
               <li key={l.id} className="stack">
                 <div className="row">
                   <span className="grow">
-                    <b>{l.actor_name ?? 'Someone'}</b> {verb}
+                    <b>{l.actor_name ?? 'Someone'}</b> {verb} <small className="muted">· {l.source === 'mcp' ? 'via MCP' : 'via UI'}</small>
                   </span>
                   <small className="muted" title={new Date(l.created_at).toLocaleString()}>{when(l.created_at)}</small>
                 </div>

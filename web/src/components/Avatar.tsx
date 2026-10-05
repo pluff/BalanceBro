@@ -1,5 +1,11 @@
 import type { Participant } from '../lib/api'
 
+// Same rule as the API default: initials of several words (max 3), else the first 3 letters.
+const shortName = (name: string) => {
+  const words = name.trim().split(/\s+/)
+  return (words.length > 1 ? words.map((w) => w[0]).join('') : words[0]).slice(0, 3).toUpperCase()
+}
+
 // Google profile picture when the person signed in with Google, otherwise their 3-letter short name.
 export default function Avatar({ person, size = 28 }: { person: Pick<Participant, 'name' | 'avatar_url'> & { short_name?: string }; size?: number }) {
   const style = { width: size, height: size, borderRadius: '50%', flex: 'none' as const }
@@ -11,7 +17,7 @@ export default function Avatar({ person, size = 28 }: { person: Pick<Participant
       aria-label={person.name}
       style={{ ...style, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gold-soft)', color: 'var(--gold-strong)', fontWeight: 700, fontSize: size * 0.34, letterSpacing: '-.02em' }}
     >
-      {person.short_name || person.name.trim().slice(0, 3).toUpperCase()}
+      {person.short_name || shortName(person.name)}
     </span>
   )
 }

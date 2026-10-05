@@ -165,7 +165,7 @@ module Mcp
 
     def audit(pot, action, subject, details)
       AuditLog.create!(group_id: pot.id, actor_id: @user.id, actor_name: @user.name, action: action,
-                       subject_type: subject.class.name, subject_id: subject.id, details: details, ip: @ip)
+                       subject_type: subject.class.name, subject_id: subject.id, details: details, ip: @ip, source: "mcp")
     end
   end
 end

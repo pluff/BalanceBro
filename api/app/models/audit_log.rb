@@ -5,8 +5,12 @@ class AuditLog < ApplicationRecord
 
   validates :group_id, :action, presence: true
 
+  SOURCES = %w[ui mcp].freeze
+
+  validates :source, inclusion: { in: SOURCES }
+
   PER_PAGE = 50
-  FIELDS = %i[id actor_id actor_name action subject_type subject_id details ip created_at].freeze
+  FIELDS = %i[id actor_id actor_name action subject_type subject_id details ip source created_at].freeze
 
   # One page of a pot's log, newest first. `before` is a log id (cursor); `next_before` is nil on the last page.
   def self.page_for(group, before: nil, per: PER_PAGE)

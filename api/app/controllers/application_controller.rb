@@ -20,7 +20,7 @@ class ApplicationController < ActionController::API
   # Records who did what in a pot. `subject` is the record acted on, `details` what changed.
   def audit(action, subject = nil, details = {}, group: @group, actor: current_user)
     AuditLog.create!(group_id: group.id, actor_id: actor&.id, actor_name: actor&.name, action: action,
-                     subject_type: subject&.class&.name, subject_id: subject&.id, details: details, ip: request.remote_ip)
+                     subject_type: subject&.class&.name, subject_id: subject&.id, details: details, ip: request.remote_ip, source: "ui")
   end
 
   # Pot from the URL for any member (owner or joined via share link).

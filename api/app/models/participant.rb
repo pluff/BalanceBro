@@ -19,8 +19,8 @@ class Participant < ApplicationRecord
   normalizes :name, with: ->(n) { n.strip.squeeze(" ") }
   normalizes :short_name, with: ->(n) { n.to_s.gsub(/\s/, "").upcase.first(3) }
 
-  # Shown on the avatar of people without a Google picture; defaults to the first three letters of the name.
-  before_validation { self.short_name = name.to_s if short_name.blank? }
+  # Shown on the avatar of people without a Google picture.
+  before_validation { self.short_name = default_short_name if short_name.blank? }
 
   validates :name, presence: true, length: { maximum: NAME_MAX },
                    uniqueness: { scope: :group_id, case_sensitive: false, conditions: -> { where(deleted_at: nil) }, message: "is already used in this MoneyPot" }
@@ -32,6 +32,12 @@ class Participant < ApplicationRecord
   before_destroy :keep_used_groups_nonempty
 
   private
+
+  # Several words: their initials (up to 3). One word: its first three letters.
+  def default_short_name
+    words = name.to_s.split
+    words.size > 1 ? words.map { |w| w[0] }.join : name.to_s
+  end
 
   def keep_owner
     return unless user_id.present? && user_id == group.owner_id

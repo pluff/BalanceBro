@@ -74,6 +74,7 @@ export type AuditLog = {
   subject_id: number | null
   details: Record<string, unknown>
   ip: string | null
+  source: 'ui' | 'mcp'
   created_at: string
 }
 
