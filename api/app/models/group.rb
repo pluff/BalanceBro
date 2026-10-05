@@ -24,20 +24,8 @@ class Group < ApplicationRecord
   def owned_by?(user) = owner_id == user.id
 
   # Permanent delete of the pot and everything that belongs to it, including soft-deleted rows and its audit trail.
-  # Children go first: money rows point at participants and groups of people.
-  def purge!
-    transaction do
-      ExpenseShare.where(expense_id: Expense.unscoped.where(group_id: id).select(:id)).delete_all
-      Expense.unscoped.where(group_id: id).delete_all
-      Settlement.unscoped.where(group_id: id).delete_all
-      ParticipantGroupMember.where(participant_group_id: ParticipantGroup.unscoped.where(group_id: id).select(:id)).delete_all
-      ParticipantGroup.unscoped.where(group_id: id).delete_all
-      Participant.unscoped.where(group_id: id).delete_all
-      GroupMembership.where(group_id: id).delete_all
-      AuditLog.where(group_id: id).delete_all
-      Group.unscoped.where(id: id).delete_all
-    end
-  end
+  # The foreign keys cascade, so the database removes the children.
+  def purge! = Group.unscoped.where(id: id).delete_all
 
   # Idempotent: keeps the current link if there is one.
   def enable_sharing! = (share_token || update!(share_token: SecureRandom.urlsafe_base64(32)))

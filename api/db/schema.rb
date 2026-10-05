@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -186,25 +186,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_100000) do
     t.index ["google_sub"], name: "index_users_on_google_sub", unique: true
   end
 
-  add_foreign_key "expense_shares", "expenses"
+  add_foreign_key "audit_logs", "groups", on_delete: :cascade
+  add_foreign_key "expense_shares", "expenses", on_delete: :cascade
   add_foreign_key "expense_shares", "participant_groups"
   add_foreign_key "expense_shares", "participants"
-  add_foreign_key "expenses", "groups"
+  add_foreign_key "expenses", "groups", on_delete: :cascade
   add_foreign_key "expenses", "participants", column: "paid_by_id"
-  add_foreign_key "group_memberships", "groups"
+  add_foreign_key "group_memberships", "groups", on_delete: :cascade
   add_foreign_key "group_memberships", "users"
   add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "oauth_codes", "oauth_clients"
   add_foreign_key "oauth_codes", "users"
   add_foreign_key "oauth_tokens", "oauth_clients"
   add_foreign_key "oauth_tokens", "users"
-  add_foreign_key "participant_group_members", "participant_groups"
+  add_foreign_key "participant_group_members", "participant_groups", on_delete: :cascade
   add_foreign_key "participant_group_members", "participants"
-  add_foreign_key "participant_groups", "groups"
-  add_foreign_key "participants", "groups"
+  add_foreign_key "participant_groups", "groups", on_delete: :cascade
+  add_foreign_key "participants", "groups", on_delete: :cascade
   add_foreign_key "participants", "users"
   add_foreign_key "sessions", "users"
-  add_foreign_key "settlements", "groups"
+  add_foreign_key "settlements", "groups", on_delete: :cascade
   add_foreign_key "settlements", "participants", column: "from_participant_id"
   add_foreign_key "settlements", "participants", column: "to_participant_id"
 end
