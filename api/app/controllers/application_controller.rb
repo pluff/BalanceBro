@@ -33,7 +33,7 @@ class ApplicationController < ActionController::API
 
   def user_from_token
     token = request.authorization.to_s.delete_prefix("Bearer ").presence
-    Session.find_by(token: token)&.user if token
+    Session.user_for(token)
   end
 
   def authenticate!
